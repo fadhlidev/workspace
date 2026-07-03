@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Lato, Poppins, Roboto } from "next/font/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ClientProvider } from "@/app/client-provider";
-import { FullscreenListener } from "@/components/fullscreen-listener";
+import { FullscreenListener } from "@/components/ui/fullscreen-listener";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/lib/theme";
 import "@fontsource/roboto/300.css";

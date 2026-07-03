@@ -1,5 +1,6 @@
 "use client";
 
+import { cx } from "classix";
 import { create } from "zustand";
 import {
   Fragment,
@@ -13,7 +14,6 @@ import { usePathname } from "next/navigation";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { usePrevious } from "react-use";
 import {
   Collapse,
   Drawer as MuiDrawer,
@@ -26,24 +26,28 @@ import {
   ListItemIcon,
   ListItemText,
   Box,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
-import { PanelLeft, ChartColumn, ChevronRight } from "lucide-react";
-import { UserProfile } from "@/components/user-profile";
+import {
+  PanelLeft,
+  ChartColumn,
+  Users,
+  ChevronRight,
+  UserCog,
+  ShieldCheck,
+} from "lucide-react";
+import { UserProfile } from "@/app/me/components/user-profile";
+import { useProfile } from "@/hooks/use-profile";
 
 export const DRAWER_WIDTH = 260;
 
 interface DrawerState {
   open: boolean;
   toggle: () => void;
-  setOpen: (open: boolean) => void;
 }
 
 export const useDrawer = create<DrawerState>()((set) => ({
   open: true,
   toggle: () => set((state) => ({ open: !state.open })),
-  setOpen: (open) => set({ open }),
 }));
 
 interface MenuItem {
@@ -51,7 +55,10 @@ interface MenuItem {
   icon: React.ReactNode;
   path?: string;
   matchPattern?: string;
+  selectedClassName?: string;
   children?: MenuItem[];
+  roles?: ("admin" | "user")[];
+  secondaryAction?: React.ReactNode;
 }
 
 const menu: MenuItem[] = [
@@ -60,6 +67,27 @@ const menu: MenuItem[] = [
     icon: <ChartColumn className="size-5" />,
     path: "/",
     matchPattern: "^/?$",
+  },
+  {
+    label: "Management",
+    icon: <UserCog className="size-5" />,
+    roles: ["admin"],
+    children: [
+      {
+        label: "Users",
+        icon: <Users className="size-5" />,
+        path: "/management/users",
+        matchPattern: "^/management/users(?:/.*)?$",
+        roles: ["admin"],
+      },
+      {
+        label: "Access Permission",
+        icon: <ShieldCheck className="size-5" />,
+        path: "/management/access-permission",
+        matchPattern: "^/management/access-permission(?:/.*)?$",
+        roles: ["admin"],
+      },
+    ],
   },
 ];
 
@@ -88,28 +116,29 @@ function useIsSelected(pathname: string) {
 
 export function Drawer() {
   const pathname = usePathname();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { open, setOpen } = useDrawer();
+  const { open } = useDrawer();
   const isSelected = useIsSelected(pathname);
-  const prevIsMobile = usePrevious(isMobile);
 
-  useEffect(() => {
-    if (isMobile) {
-      setOpen(false);
-    } else {
-      setOpen(true);
-    }
-  }, [isMobile, setOpen]);
+  const { role } = useProfile();
 
-  useEffect(() => {
-    if (isMobile) {
-      setOpen(false);
-    }
-  }, [pathname, isMobile, setOpen]);
+  const visibleMenu = useMemo(() => {
+    const filterByRole = (items: MenuItem[]): MenuItem[] =>
+      items
+        .filter(
+          (item) =>
+            !item.roles || item.roles.includes(role as "admin" | "user"),
+        )
+        .map((item) => ({
+          ...item,
+          children: item.children ? filterByRole(item.children) : undefined,
+        }))
+        .filter((item) => !item.children || item.children.length > 0);
 
-  const [manuallyExpanded, setManuallyExpanded] = useState<string[]>(() => {
-    return menu
+    return filterByRole(menu);
+  }, [role]);
+
+  const autoExpanded = useMemo(() => {
+    return visibleMenu
       .filter((item) =>
         item.children?.some(
           (child) =>
@@ -117,22 +146,24 @@ export function Drawer() {
         ),
       )
       .map((item) => item.label);
-  });
+  }, [pathname, visibleMenu]);
+
+  const [override, setOverride] = useState<string[]>([]);
 
   const expanded = useMemo(() => {
-    const autoExpanded = menu
-      .filter((item) =>
-        item.children?.some(
-          (child) =>
-            child.matchPattern && new RegExp(child.matchPattern).test(pathname),
-        ),
-      )
-      .map((item) => item.label);
-    return [...new Set([...manuallyExpanded, ...autoExpanded])];
-  }, [pathname, manuallyExpanded]);
+    const result = new Set(autoExpanded);
+    for (const label of override) {
+      if (result.has(label)) {
+        result.delete(label);
+      } else {
+        result.add(label);
+      }
+    }
+    return [...result];
+  }, [autoExpanded, override]);
 
   const toggleExpand = (label: string) => {
-    setManuallyExpanded((prev) =>
+    setOverride((prev) =>
       prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label],
     );
   };
@@ -151,8 +182,24 @@ export function Drawer() {
     return () => list.removeEventListener("scroll", onScroll);
   }, []);
 
-  const drawerContent = (
-    <>
+  return (
+    <MuiDrawer
+      sx={{
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
+          width: DRAWER_WIDTH,
+          boxSizing: "border-box",
+          height: "100%",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        },
+      }}
+      variant="persistent"
+      anchor="left"
+      open={open}
+    >
       <Stack
         direction="row"
         spacing={1}
@@ -190,10 +237,13 @@ export function Drawer() {
         <DrawerToggle />
       </Stack>
       <List ref={listRef} disablePadding sx={{ flex: 1, overflowY: "auto" }}>
-        {menu.map((item) => (
+        {visibleMenu.map((item) => (
           <Fragment key={item.label}>
             {item.children ? (
-              <ListItem className="px-2 py-1">
+              <ListItem
+                className="px-2 py-1"
+                secondaryAction={item.secondaryAction}
+              >
                 <ListItemButton
                   className="rounded-lg text-gray-500"
                   selected={isSelected(item)}
@@ -215,13 +265,21 @@ export function Drawer() {
                 </ListItemButton>
               </ListItem>
             ) : (
-              <ListItem className="px-2 py-1">
+              <ListItem
+                className="px-2 py-1"
+                secondaryAction={item.secondaryAction}
+              >
                 <ListItemButton
                   LinkComponent={Link}
                   href={item.path as string}
                   className="rounded-lg text-gray-500"
                   selected={isSelected(item)}
-                  classes={{ selected: "text-primary [&_svg]:stroke-primary" }}
+                  classes={{
+                    selected: cx(
+                      "text-primary [&_svg]:stroke-primary",
+                      item.selectedClassName,
+                    ),
+                  }}
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText
@@ -237,14 +295,21 @@ export function Drawer() {
               <Collapse in={expanded.includes(item.label)} timeout="auto">
                 <List disablePadding>
                   {item.children.map((child) => (
-                    <ListItem key={child.label} className="px-2 py-1">
+                    <ListItem
+                      key={child.label}
+                      className="px-2 py-1"
+                      secondaryAction={child.secondaryAction}
+                    >
                       <ListItemButton
                         LinkComponent={Link}
                         href={child.path as string}
                         className="rounded-lg text-gray-500"
                         selected={isSelected(child)}
                         classes={{
-                          selected: "text-primary [&_svg]:stroke-primary",
+                          selected: cx(
+                            "text-primary [&_svg]:stroke-primary",
+                            child.selectedClassName,
+                          ),
                         }}
                         sx={{ pl: 4 }}
                       >
@@ -268,54 +333,6 @@ export function Drawer() {
       <Box className="z-10 border-t border-gray-300 bg-white">
         <UserProfile />
       </Box>
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <MuiDrawer
-        variant="temporary"
-        anchor="left"
-        open={open && prevIsMobile === true}
-        onClose={() => setOpen(false)}
-        ModalProps={{
-          keepMounted: true,
-        }}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: DRAWER_WIDTH,
-            boxSizing: "border-box",
-            height: "100%",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-          },
-        }}
-      >
-        {drawerContent}
-      </MuiDrawer>
-    );
-  }
-
-  return (
-    <MuiDrawer
-      sx={{
-        width: DRAWER_WIDTH,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: DRAWER_WIDTH,
-          boxSizing: "border-box",
-          height: "100%",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        },
-      }}
-      variant="persistent"
-      anchor="left"
-      open={open}
-    >
-      {drawerContent}
     </MuiDrawer>
   );
 }

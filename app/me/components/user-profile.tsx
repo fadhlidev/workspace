@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { LogOut } from "lucide-react";
-import { UserInitial } from "@/components/user-initial";
+import { UserInitial } from "@/app/me/components/user-initial";
 
 export function UserProfile() {
   const [open, toggleOpen] = useToggle(false);

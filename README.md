@@ -78,11 +78,11 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["Edit db/schema/*.ts"] --> B["migrate:generate"]
+  A["Edit db/schemas/*.ts"] --> B["migrate:generate"]
   B --> C["migrate:up"]
 ```
 
-1. Edit schema files in `db/schema/`
+1. Edit schema files in `db/schemas/`
 2. `npm run migrate:generate` → produces new SQL file in `db/migrations/`
 3. `npm run migrate:up` → apply to database
 

@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { jwt } from "@/server/plugins/jwt";
 import { loginRateLimit } from "@/server/plugins/rate-limit";
 import { db } from "@/lib/db";
-import { users } from "@/db/schema/users";
+import { users } from "@/db/schemas/users";
 import { eq } from "drizzle-orm";
 
 export const auth = new Elysia({

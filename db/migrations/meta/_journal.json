@@ -6,7 +6,7 @@
       "idx": 0,
       "version": "7",
       "when": 1780505208604,
-      "tag": "0000_create_users",
+      "tag": "0000_initial_metadata_schema",
       "breakpoints": true
     }
   ]

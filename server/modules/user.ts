@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { jwt } from "@/server/plugins/jwt";
 import { db } from "@/lib/db";
-import { users } from "@/db/schema/users";
+import { users } from "@/db/schemas/users";
 
 export const user = new Elysia({ name: "user", prefix: "/user" })
   .use(jwt)
@@ -111,7 +111,10 @@ export const user = new Elysia({ name: "user", prefix: "/user" })
         return status(404, { message: "User not found" });
       }
 
-      const valid = await bcrypt.compare(body.currentPassword, found.passwordHash);
+      const valid = await bcrypt.compare(
+        body.currentPassword,
+        found.passwordHash,
+      );
       if (!valid) {
         return status(400, { message: "Current password is incorrect" });
       }

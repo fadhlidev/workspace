@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ComponentType, type PropsWithChildren } from "react";
-import { ErrorFallback } from "@/components/error-fallback";
+import { ErrorFallback } from "@/components/ui/error-fallback";
 
 interface ErrorBoundaryProps extends PropsWithChildren {
   fallback?: ComponentType<{
