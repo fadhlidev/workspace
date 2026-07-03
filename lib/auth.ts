@@ -12,14 +12,11 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
 
-        const res = await fetch(
-          `${process.env.NEXTAUTH_URL}/api/auth/login`,
-          {
-            method: "POST",
-            body: JSON.stringify(credentials),
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/login`, {
+          method: "POST",
+          body: JSON.stringify(credentials),
+          headers: { "Content-Type": "application/json" },
+        });
 
         if (!res.ok) return null;
 

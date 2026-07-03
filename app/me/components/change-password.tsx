@@ -63,7 +63,11 @@ function PasswordField({
           endAdornment: (
             <InputAdornment position="end">
               <IconButton onClick={onToggle} edge="end" size="small">
-                {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                {show ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
               </IconButton>
             </InputAdornment>
           ),

@@ -1,5 +1,6 @@
 "use client";
 
+import { version } from "@/package.json";
 import { cx } from "classix";
 import { create } from "zustand";
 import {
@@ -231,7 +232,7 @@ export function Drawer() {
             component="div"
             className="-mt-2 pl-8 text-xs text-gray-500"
           >
-            Dashboard v0.1.0
+            {`Dashboard v${version}`}
           </Typography>
         </Stack>
         <DrawerToggle />

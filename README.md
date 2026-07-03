@@ -45,20 +45,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts Reference
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start Next.js dev server with hot-reload |
-| `npm run build` | Production Next.js build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run start:postgres` | Start PostgreSQL container via Docker Compose |
-| `npm run start:pgadmin` | Start PostgreSQL + pgAdmin (UI) |
-| `npm run stop:postgres` | Stop PostgreSQL container |
-| `npm run stop:pgadmin` | Stop PostgreSQL + pgAdmin containers |
-| `npm run migrate:generate` | Generate SQL migration from Drizzle schema changes |
-| `npm run migrate:up` | Apply pending migrations to database |
-| `npm run migrate:down` | Drop all tables, regenerate, then re-apply migrations |
-| `npm run seed` | Seed database with initial data (default admin user) |
+| Command                    | Description                                           |
+| -------------------------- | ----------------------------------------------------- |
+| `npm run dev`              | Start Next.js dev server with hot-reload              |
+| `npm run build`            | Production Next.js build                              |
+| `npm run start`            | Start production server                               |
+| `npm run lint`             | Run ESLint                                            |
+| `npm run start:postgres`   | Start PostgreSQL container via Docker Compose         |
+| `npm run start:pgadmin`    | Start PostgreSQL + pgAdmin (UI)                       |
+| `npm run stop:postgres`    | Stop PostgreSQL container                             |
+| `npm run stop:pgadmin`     | Stop PostgreSQL + pgAdmin containers                  |
+| `npm run migrate:generate` | Generate SQL migration from Drizzle schema changes    |
+| `npm run migrate:up`       | Apply pending migrations to database                  |
+| `npm run migrate:down`     | Drop all tables, regenerate, then re-apply migrations |
+| `npm run seed`             | Seed database with initial data (default admin user)  |
 
 ### Dev Setup Order
 
@@ -88,12 +88,12 @@ flowchart LR
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 App Router |
-| API Server | Elysia 1.x |
-| ORM | Drizzle ORM + drizzle-kit |
-| Database | PostgreSQL 17 |
-| Auth | NextAuth v4 (Credentials) + JWT |
-| UI | MUI v9 + Tailwind v4 |
-| State | TanStack Query + Zustand |
+| Layer      | Technology                      |
+| ---------- | ------------------------------- |
+| Framework  | Next.js 16 App Router           |
+| API Server | Elysia 1.x                      |
+| ORM        | Drizzle ORM + drizzle-kit       |
+| Database   | PostgreSQL 17                   |
+| Auth       | NextAuth v4 (Credentials) + JWT |
+| UI         | MUI v9 + Tailwind v4            |
+| State      | TanStack Query + Zustand        |

@@ -40,7 +40,6 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
 
-
   const {
     register,
     handleSubmit,
@@ -271,8 +270,6 @@ export default function LoginForm() {
                 },
               }}
             />
-
-
 
             {/* Error alert */}
             {errors.root && (

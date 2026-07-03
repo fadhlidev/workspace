@@ -16,7 +16,9 @@ export const loginRateLimit = rateLimit({
     return !url.pathname.endsWith("/auth/login");
   },
   errorResponse: new Response(
-    JSON.stringify({ message: "Too many login attempts. Try again in 15 minutes." }),
+    JSON.stringify({
+      message: "Too many login attempts. Try again in 15 minutes.",
+    }),
     {
       status: 429,
       headers: { "Content-Type": "application/json" },
