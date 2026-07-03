@@ -12,7 +12,9 @@ import {
   useEffect,
 } from "react";
 import { usePathname } from "next/navigation";
-import { styled } from "@mui/material/styles";
+import { usePrevious } from "react-use";
+import { styled, useTheme } from "@mui/material/styles";
+import { useProfile } from "@/hooks/use-profile";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -27,6 +29,7 @@ import {
   ListItemIcon,
   ListItemText,
   Box,
+  useMediaQuery,
 } from "@mui/material";
 import {
   PanelLeft,
@@ -37,17 +40,18 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { UserProfile } from "@/app/me/components/user-profile";
-import { useProfile } from "@/hooks/use-profile";
 
 export const DRAWER_WIDTH = 260;
 
 interface DrawerState {
   open: boolean;
+  setOpen: (open: boolean) => void;
   toggle: () => void;
 }
 
 export const useDrawer = create<DrawerState>()((set) => ({
   open: true,
+  setOpen: (open: boolean) => set({ open }),
   toggle: () => set((state) => ({ open: !state.open })),
 }));
 
@@ -117,8 +121,11 @@ function useIsSelected(pathname: string) {
 
 export function Drawer() {
   const pathname = usePathname();
-  const { open } = useDrawer();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { open, setOpen } = useDrawer();
   const isSelected = useIsSelected(pathname);
+  const prevIsMobile = usePrevious(isMobile);
 
   const { role } = useProfile();
 
@@ -183,24 +190,22 @@ export function Drawer() {
     return () => list.removeEventListener("scroll", onScroll);
   }, []);
 
-  return (
-    <MuiDrawer
-      sx={{
-        width: DRAWER_WIDTH,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: DRAWER_WIDTH,
-          boxSizing: "border-box",
-          height: "100%",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        },
-      }}
-      variant="persistent"
-      anchor="left"
-      open={open}
-    >
+  useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+  }, [isMobile, setOpen]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [pathname, isMobile, setOpen]);
+
+  const drawerContent = (
+    <Fragment>
       <Stack
         direction="row"
         spacing={1}
@@ -334,6 +339,54 @@ export function Drawer() {
       <Box className="z-10 border-t border-gray-300 bg-white">
         <UserProfile />
       </Box>
+    </Fragment>
+  );
+
+  if (isMobile) {
+    return (
+      <MuiDrawer
+        variant="temporary"
+        anchor="left"
+        open={open && prevIsMobile === true}
+        onClose={() => setOpen(false)}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: DRAWER_WIDTH,
+            boxSizing: "border-box",
+            height: "100%",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
+      >
+        {drawerContent}
+      </MuiDrawer>
+    );
+  }
+
+  return (
+    <MuiDrawer
+      sx={{
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
+          width: DRAWER_WIDTH,
+          boxSizing: "border-box",
+          height: "100%",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        },
+      }}
+      variant="persistent"
+      anchor="left"
+      open={open}
+    >
+      {drawerContent}
     </MuiDrawer>
   );
 }
