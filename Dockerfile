@@ -33,6 +33,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set dummy environment variables for build time only (to allow Next.js static analysis to pass)
+ENV JWT_SECRET=dummy_jwt_secret_for_build_purposes
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres
+ENV NEXTAUTH_SECRET=dummy_nextauth_secret_for_build_purposes
+ENV NEXTAUTH_URL=http://localhost:3000
+
 RUN bun run build
 
 
