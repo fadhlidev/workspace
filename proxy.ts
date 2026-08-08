@@ -1,8 +1,24 @@
 import { getToken } from "next-auth/jwt";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function proxy(request: NextRequest) {
+  const ip =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for") ??
+    "unknown";
+
+  logger.info(
+    {
+      method: request.method,
+      path: request.nextUrl.pathname,
+      search: request.nextUrl.search,
+      ip,
+      ua: request.headers.get("user-agent"),
+    },
+    "incoming request",
+  );
+
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
