@@ -32,6 +32,8 @@ export const usePageDrawer = () => {
     queryFn: async () => initialData,
     placeholderData: initialData,
     initialData: initialData,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const setOpen = (open: boolean) => {
@@ -39,7 +41,11 @@ export const usePageDrawer = () => {
   };
 
   const toggle = () => {
-    queryClient.setQueryData(["page-drawer"], { open: !open });
+    if (open) {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
   };
 
   return { open, setOpen, toggle };
@@ -77,13 +83,15 @@ export function PageDrawer({ showLogo = true, children }: PageDrawerProps) {
     } else {
       setOpen(true);
     }
-  }, [isMobile, setOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile]);
 
   useEffect(() => {
     if (isMobile) {
       setOpen(false);
     }
-  }, [pathname, isMobile, setOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, isMobile]);
 
   const drawerContent = (
     <Fragment>
