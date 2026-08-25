@@ -17,8 +17,6 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init:/docker-entrypoint-initdb.d:ro # Drop .sql/.sh files here to auto-run on first boot
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro # Optional custom config
 
     healthcheck:
       test:

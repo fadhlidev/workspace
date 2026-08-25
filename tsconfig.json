@@ -19,7 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@storage/*": ["./app/(storage)/*"],
+      "@shared/*": ["./app/(shared)/*"],
+      "@backend/*": ["./app/(backend)/*"],
+      "@frontend/*": ["./app/(frontend)/*"],
+      "@pages/*": ["./app/(frontend)/(pages)/*"]
     }
   },
   "include": [
@@ -28,7 +33,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "app/page.tsx.bak"
   ],
   "exclude": ["node_modules"]
 }

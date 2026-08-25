@@ -1,6 +1,6 @@
 "use client";
 
-import { ErrorFallback } from "@/components/ui/error-fallback";
+import { ErrorFallback } from "@frontend/components/ui/error-fallback";
 
 interface ErrorProps {
   error: Error & { digest?: string };

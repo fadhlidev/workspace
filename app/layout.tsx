@@ -1,49 +1,32 @@
 import type { Metadata } from "next";
-import { Lato, Poppins, Roboto } from "next/font/google";
+import type { PropsWithChildren } from "react";
+import { cx } from "classix";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { ClientProvider } from "@/app/client-provider";
-import { FullscreenListener } from "@/components/ui/fullscreen-listener";
 import { ThemeProvider } from "@mui/material/styles";
-import theme from "@/lib/theme";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
-import "@/app/globals.css";
+import { FullscreenListener } from "@frontend/components/ui/fullscreen-listener";
+import { ClientProvider } from "@frontend/providers/client-provider";
+import { lato, poppins, roboto } from "@frontend/styles/fonts";
+import { theme } from "@frontend/styles/theme";
+import "@frontend/styles/globals.css";
 import "goey-toast/styles.css";
-
-const lato = Lato({
-  variable: "--font-lato",
-  weight: ["300", "400", "700"],
-  subsets: ["latin"],
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  weight: ["300", "400", "500", "700"],
-  subsets: ["latin"],
-});
-
-const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-roboto",
-});
 
 export const metadata: Metadata = {
   title: "Fadhlidev Workspace",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html
       lang="en"
-      className={`${lato.variable} ${poppins.variable} ${roboto.variable} h-full antialiased`}
+      className={cx(
+        lato.variable,
+        poppins.variable,
+        roboto.variable,
+        "h-full antialiased",
+      )}
       suppressHydrationWarning
     >
       <body>

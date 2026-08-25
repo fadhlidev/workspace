@@ -2,96 +2,42 @@
 
 import Link from "next/link";
 import { Home, SearchX } from "lucide-react";
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Button } from "@mui/material";
 
 export default function NotFound() {
   return (
-    <Box
-      sx={{
-        display: "grid",
-        minHeight: "100vh",
-        placeItems: "center",
-        position: "relative",
-        overflow: "hidden",
-        bgcolor: "#f6f8fb",
-      }}
-    >
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: [
-            "radial-gradient(ellipse at 20% 10%, rgba(105,37,156,0.08), transparent 50%)",
-            "radial-gradient(ellipse at 80% 90%, rgba(15,118,110,0.08), transparent 50%)",
-          ].join(","),
+    <div className="relative grid min-h-screen place-items-center overflow-hidden bg-[#f6f8fb]">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 50%), radial-gradient(ellipse at 80% 90%, color-mix(in srgb, var(--color-success) 8%, transparent), transparent 50%)",
         }}
       />
 
-      <Paper
-        variant="outlined"
-        sx={{
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          px: { xs: 4, sm: 8 },
-          py: { xs: 6, sm: 8 },
-          maxWidth: 480,
-          mx: 2,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            bgcolor: "rgba(105,37,156,0.08)",
-            mb: 3,
-          }}
-        >
-          <SearchX size={36} className="text-[#69259c]" />
-        </Box>
+      <div className="relative mx-2 flex max-w-96 flex-col items-center rounded border border-neutral-200 bg-white px-8 py-12 shadow-sm sm:px-12">
+        <div className="bg-primary/10 mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+          <SearchX size={36} className="text-primary" />
+        </div>
 
-        <Typography
-          className="font-lato"
-          sx={{
-            fontSize: { xs: "5rem", sm: "6rem" },
-            fontWeight: 900,
-            lineHeight: 1,
-            letterSpacing: "-0.04em",
-            background: "linear-gradient(135deg, #69259c 0%, #0f766e 100%)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            mb: 1,
+        <h1
+          className="font-lato mb-2 bg-clip-text text-6xl leading-none font-black tracking-tighter text-transparent sm:text-7xl"
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%)",
           }}
         >
           404
-        </Typography>
+        </h1>
 
-        <Typography
-          className="font-lato"
-          variant="h5"
-          sx={{ fontWeight: 700, color: "#12175d", mb: 1 }}
-        >
+        <h5 className="font-lato text-primary mb-2 text-xl font-bold">
           Page not found
-        </Typography>
+        </h5>
 
-        <Typography
-          sx={{
-            color: "text.secondary",
-            textAlign: "center",
-            fontSize: "0.875rem",
-            maxWidth: 320,
-            mb: 4,
-          }}
-        >
+        <p className="mb-6 max-w-80 text-center text-sm text-neutral-500">
           The page you are looking for does not exist or has been moved. Check
           the URL or head back to the dashboard.
-        </Typography>
+        </p>
 
         <Button
           component={Link}
@@ -99,11 +45,11 @@ export default function NotFound() {
           variant="contained"
           size="large"
           startIcon={<Home size={18} />}
-          sx={{ px: 4 }}
+          className="px-8"
         >
           Back to Home
         </Button>
-      </Paper>
-    </Box>
+      </div>
+    </div>
   );
 }
