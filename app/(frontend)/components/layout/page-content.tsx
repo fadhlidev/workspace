@@ -8,6 +8,7 @@ import { Main } from "@frontend/components/styled/main";
 import { UnderDevelopment } from "@frontend/components/ui/under-development";
 import { ForbiddenAccess } from "@frontend/components/ui/forbidden-access";
 import { ErrorBoundary } from "@frontend/components/ui/error-boundary";
+import { CircularProgress } from "@mui/material";
 
 interface PageContentProps extends PropsWithChildren {
   withBar?: boolean;
@@ -23,7 +24,7 @@ export function PageContent({
   allowedRoles,
 }: PageContentProps) {
   const { open } = usePageDrawer();
-  const { role } = useProfile();
+  const { role, isLoading } = useProfile();
 
   const isForbidden =
     allowedRoles && !allowedRoles.includes(role as "admin" | "user");
@@ -31,7 +32,11 @@ export function PageContent({
   return (
     <Main open={open} className="@container/main bg-gray-50">
       {withBar && <DrawerHeader />}
-      {isForbidden ? (
+      {isLoading ? (
+        <div className="flex h-[calc(100%-72px)] w-full items-center justify-center">
+          <CircularProgress />
+        </div>
+      ) : isForbidden ? (
         <div className="h-[calc(100%-72px)] w-full">
           <ForbiddenAccess />
         </div>

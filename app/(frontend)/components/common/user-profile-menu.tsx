@@ -2,7 +2,8 @@
 
 import { Fragment } from "react";
 import { useToggle } from "react-use";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useProfile } from "@frontend/hooks/use-profile";
 import { useProgress } from "@bprogress/next";
 import Link from "next/link";
 import {
@@ -13,6 +14,7 @@ import {
   Divider,
   IconButton,
   Paper,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
@@ -21,10 +23,8 @@ import { UserInitial } from "@frontend/components/common/user-initial";
 
 export function UserProfileMenu() {
   const [open, toggleOpen] = useToggle(false);
-  const { data: session } = useSession();
+  const { name, email, isLoading } = useProfile();
   const { stop } = useProgress();
-
-  const user = session?.user;
 
   function handleCancel() {
     toggleOpen();
@@ -33,6 +33,26 @@ export function UserProfileMenu() {
 
   function handleLogout() {
     signOut({ callbackUrl: "/login" });
+  }
+
+  if (isLoading) {
+    return (
+      <Stack
+        direction="row"
+        sx={{
+          p: 2,
+          justifyContent: "start",
+          alignItems: "center",
+        }}
+        className="gap-2 rounded-none"
+      >
+        <Skeleton variant="circular" width={40} height={40} />
+        <Box className="flex flex-1 flex-col items-start justify-start gap-1">
+          <Skeleton variant="text" width={120} height={16} />
+          <Skeleton variant="text" width={160} height={12} />
+        </Box>
+      </Stack>
+    );
   }
 
   return (
@@ -49,24 +69,24 @@ export function UserProfileMenu() {
         }}
         className="gap-2 rounded-none"
       >
-        <UserInitial name={user?.name ?? "?"} />
+        <UserInitial name={name} />
         <Box className="flex flex-1 flex-col items-start justify-start">
           <Typography
             variant="body1"
             component="div"
             className="font-lato text-left text-sm font-semibold text-gray-600"
           >
-            {user?.name ?? "..."}
+            {name}
           </Typography>
           <Typography
             variant="body2"
             component="div"
             className="font-lato text-left text-xs font-semibold text-gray-500"
           >
-            {user?.email ?? ""}
+            {email}
           </Typography>
         </Box>
-        {user ? (
+        {!isLoading ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
@@ -151,17 +171,17 @@ export function UserProfileMenu() {
               bgcolor: "grey.50",
             }}
           >
-            <UserInitial name={user?.name ?? "?"} />
+            <UserInitial name={name} />
             <Stack>
               <Typography
                 variant="body2"
                 className="font-lato"
                 sx={{ fontWeight: 600 }}
               >
-                {user?.name ?? "..."}
+                {name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {user?.email ?? ""}
+                {email}
               </Typography>
             </Stack>
           </Paper>
