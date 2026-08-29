@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import { cx } from "classix";
 import Image from "next/image";
 import { useState } from "react";
@@ -20,21 +19,10 @@ import {
   Box,
   Divider,
 } from "@mui/material";
-
-export const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-export type LoginInput = z.infer<typeof loginSchema>;
-
-export type LoginResponse = {
-  token: string;
-  user: {
-    name: string;
-    email: string;
-  };
-};
+import {
+  loginRequestSchema,
+  type LoginRequest,
+} from "@shared/schemas/auth/login";
 
 const textFieldClasses =
   "[&_.MuiOutlinedInput-root]:rounded-[10px] [&_.MuiOutlinedInput-root]:bg-white [&_.MuiOutlinedInput-notchedOutline]:border-[#e0e0e0] hover:[&_.MuiOutlinedInput-notchedOutline]:border-[#b0b0b0] [&_.Mui-focused_.MuiOutlinedInput-notchedOutline]:border-primary";
@@ -49,12 +37,12 @@ export default function LoginForm() {
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<LoginRequest>({
+    resolver: zodResolver(loginRequestSchema),
   });
 
   const { isPending, mutate } = useMutation({
-    mutationFn: async (data: LoginInput) => {
+    mutationFn: async (data: LoginRequest) => {
       const result = await signIn("credentials", {
         username: data.username,
         password: data.password,

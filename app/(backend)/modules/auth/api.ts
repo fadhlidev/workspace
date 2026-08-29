@@ -1,10 +1,14 @@
-import { Elysia, t } from "elysia";
-import bcrypt from "bcrypt";
+import { Elysia } from "elysia";
 import { eq } from "drizzle-orm";
 import { db } from "@storage/database";
 import { jwt } from "@backend/plugins/jwt";
 import { loginRateLimit } from "@backend/plugins/rate-limit";
 import { users } from "@storage/database/schemas/users";
+import { isPasswordMatch } from "@backend/modules/auth/helpers";
+import {
+  loginRequestSchema,
+  refreshTokenRequestSchema,
+} from "@shared/schemas/auth/login";
 
 export const auth = new Elysia({
   name: "auth",
@@ -25,7 +29,7 @@ export const auth = new Elysia({
         return status(401, { message: "Invalid username or password" });
       }
 
-      const valid = await bcrypt.compare(body.password, user.passwordHash);
+      const valid = await isPasswordMatch(body.password, user.passwordHash);
       if (!valid) {
         return status(401, { message: "Invalid username or password" });
       }
@@ -59,10 +63,7 @@ export const auth = new Elysia({
       };
     },
     {
-      body: t.Object({
-        username: t.String(),
-        password: t.String(),
-      }),
+      body: loginRequestSchema,
     },
   )
   .post(
@@ -97,8 +98,6 @@ export const auth = new Elysia({
       return { accessToken, refreshToken };
     },
     {
-      body: t.Object({
-        refreshToken: t.String(),
-      }),
+      body: refreshTokenRequestSchema,
     },
   );

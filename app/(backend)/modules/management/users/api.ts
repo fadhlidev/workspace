@@ -3,7 +3,7 @@ import { jwt } from "@backend/plugins/jwt";
 import { eq, or, sql } from "drizzle-orm";
 import { db } from "@storage/database";
 import { users as usersTable } from "@storage/database/schemas/users";
-import bcrypt from "bcrypt";
+import { hashPassword } from "@backend/modules/auth/helpers";
 
 export const users = new Elysia({
   name: "users",
@@ -78,7 +78,7 @@ export const users = new Elysia({
         return status(409, { message: "Username or email already exists" });
       }
 
-      const passwordHash = await bcrypt.hash(body.password, 12);
+      const passwordHash = await hashPassword(body.password);
 
       const [created] = await db
         .insert(usersTable)
@@ -196,7 +196,7 @@ export const users = new Elysia({
         return status(404, { message: "User not found" });
       }
 
-      const passwordHash = await bcrypt.hash(body.newPassword, 12);
+      const passwordHash = await hashPassword(body.newPassword);
 
       await db
         .update(usersTable)
