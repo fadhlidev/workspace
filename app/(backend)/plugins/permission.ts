@@ -1,5 +1,5 @@
 import { Elysia, type AnyElysia } from "elysia";
-import { jwt } from "@/server/plugins/jwt";
+import { jwt } from "@backend/plugins/jwt";
 import { eq } from "drizzle-orm";
 import { db } from "@storage/database";
 import { users } from "@storage/database/schemas/users";
