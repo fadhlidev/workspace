@@ -5,13 +5,8 @@ import { useToggle } from "react-use";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { api } from "@backend/api/client";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@frontend/trpc/client";
 import {
   Alert,
   Avatar,
@@ -140,7 +135,7 @@ interface UpdateInfoDialogProps {
 }
 
 function UpdateInfoDialog({ open, user, onClose }: UpdateInfoDialogProps) {
-  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
   const {
     register,
@@ -160,25 +155,17 @@ function UpdateInfoDialog({ open, user, onClose }: UpdateInfoDialogProps) {
       : undefined,
   });
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: async (data: UpdateInfoInput) => {
-      const res = await api.patch(`/api/management/users/${user?.id}`, {
-        name: data.name,
-        username: data.username,
-        email: data.email,
-        role: data.role,
-      });
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/management/users"] });
-      goeyToast.success("Informasi pengguna berhasil diperbarui");
-      handleClose();
-    },
-    onError: (err) => {
-      setError("root", { message: getApiErrorMessage(err) });
-    },
-  });
+  const { isPending, mutate } = useMutation(
+    trpc.management.users.update.mutationOptions({
+      onSuccess: () => {
+        goeyToast.success("Informasi pengguna berhasil diperbarui");
+        handleClose();
+      },
+      onError: (err) => {
+        setError("root", { message: getApiErrorMessage(err) });
+      },
+    }),
+  );
 
   function handleClose() {
     reset();
@@ -215,7 +202,15 @@ function UpdateInfoDialog({ open, user, onClose }: UpdateInfoDialogProps) {
 
       <Box
         component="form"
-        onSubmit={handleSubmit((data) => mutate(data))}
+        onSubmit={handleSubmit((data) =>
+          mutate({
+            id: user!.id,
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            role: data.role,
+          }),
+        )}
         noValidate
       >
         <DialogContent className="space-y-4 pt-4">
@@ -388,7 +383,7 @@ function UpdatePasswordDialog({
   user,
   onClose,
 }: UpdatePasswordDialogProps) {
-  const queryClient = useQueryClient();
+  const trpc = useTRPC();
   const [showNew, toggleShowNew] = useToggle(false);
   const [showConfirm, toggleShowConfirm] = useToggle(false);
 
@@ -402,25 +397,17 @@ function UpdatePasswordDialog({
     resolver: zodResolver(updatePasswordSchema),
   });
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: async (data: UpdatePasswordInput) => {
-      const res = await api.patch(
-        `/api/management/users/${user?.id}/password`,
-        {
-          newPassword: data.newPassword,
-        },
-      );
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/management/users"] });
-      goeyToast.success("Password pengguna berhasil diperbarui");
-      handleClose();
-    },
-    onError: (err) => {
-      setError("root", { message: getApiErrorMessage(err) });
-    },
-  });
+  const { isPending, mutate } = useMutation(
+    trpc.management.users.updatePassword.mutationOptions({
+      onSuccess: () => {
+        goeyToast.success("Password pengguna berhasil diperbarui");
+        handleClose();
+      },
+      onError: (err) => {
+        setError("root", { message: getApiErrorMessage(err) });
+      },
+    }),
+  );
 
   function handleClose() {
     reset();
@@ -457,7 +444,12 @@ function UpdatePasswordDialog({
 
       <Box
         component="form"
-        onSubmit={handleSubmit((data) => mutate(data))}
+        onSubmit={handleSubmit((data) =>
+          mutate({
+            id: user!.id,
+            newPassword: data.newPassword,
+          }),
+        )}
         noValidate
       >
         <DialogContent className="space-y-4 pt-4">
@@ -606,23 +598,20 @@ function DeleteConfirmDialog({
   user,
   onClose,
 }: DeleteConfirmDialogProps) {
-  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: async () => {
-      const res = await api.delete(`/api/management/users/${user?.id}`);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/management/users"] });
-      goeyToast.success("Pengguna berhasil dihapus");
-      onClose();
-    },
-    onError: (err) => {
-      goeyToast.error(getApiErrorMessage(err));
-      onClose();
-    },
-  });
+  const { isPending, mutate } = useMutation(
+    trpc.management.users.delete.mutationOptions({
+      onSuccess: () => {
+        goeyToast.success("Pengguna berhasil dihapus");
+        onClose();
+      },
+      onError: (err) => {
+        goeyToast.error(getApiErrorMessage(err));
+        onClose();
+      },
+    }),
+  );
 
   return (
     <Dialog
@@ -690,7 +679,7 @@ function DeleteConfirmDialog({
           className="rounded-lg px-4"
           startIcon={<Trash2 className="size-4" />}
           loading={isPending}
-          onClick={() => mutate()}
+          onClick={() => mutate({ id: user!.id })}
         >
           Hapus Pengguna
         </Button>
@@ -705,7 +694,7 @@ interface RegisterUserDialogProps {
 }
 
 function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
-  const queryClient = useQueryClient();
+  const trpc = useTRPC();
   const [showPassword, toggleShowPassword] = useToggle(false);
   const [showConfirm, toggleShowConfirm] = useToggle(false);
 
@@ -722,26 +711,17 @@ function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
     },
   });
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: async (data: RegisterUserInput) => {
-      const res = await api.post("/api/management/users", {
-        name: data.name,
-        username: data.username,
-        email: data.email,
-        password: data.password,
-        role: data.role,
-      });
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/management/users"] });
-      goeyToast.success("Pengguna baru berhasil ditambahkan");
-      handleClose();
-    },
-    onError: (err) => {
-      setError("root", { message: getApiErrorMessage(err) });
-    },
-  });
+  const { isPending, mutate } = useMutation(
+    trpc.management.users.create.mutationOptions({
+      onSuccess: () => {
+        goeyToast.success("Pengguna baru berhasil ditambahkan");
+        handleClose();
+      },
+      onError: (err) => {
+        setError("root", { message: getApiErrorMessage(err) });
+      },
+    }),
+  );
 
   function handleClose() {
     reset();
@@ -778,7 +758,15 @@ function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
 
       <Box
         component="form"
-        onSubmit={handleSubmit((data) => mutate(data))}
+        onSubmit={handleSubmit((data) =>
+          mutate({
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            role: data.role,
+          }),
+        )}
         noValidate
       >
         <DialogContent className="space-y-4 pt-4">
@@ -1064,32 +1052,30 @@ export function UserTable() {
 
   const sort = sortModel.length > 0 ? sortModel[0].field : undefined;
   const order = sortModel.length > 0 ? sortModel[0].sort : undefined;
+  const trpc = useTRPC();
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: [
-      "/api/management/users",
-      paginationModel.page,
-      paginationModel.pageSize,
-      sort,
-      order,
-      search,
-    ],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.set("page", String(paginationModel.page + 1));
-      params.set("limit", String(paginationModel.pageSize));
-      if (sort) params.set("sort", sort);
-      if (order) params.set("order", order);
-      if (search) params.set("search", search);
+  const {
+    data: usersRes,
+    isLoading,
+    isFetching,
+  } = useQuery(
+    trpc.management.users.list.queryOptions(
+      {
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sort,
+        order: order as "asc" | "desc",
+        search,
+      },
+      {
+        placeholderData: keepPreviousData,
+      },
+    ),
+  );
 
-      const res = await api.get<{
-        data: User[];
-        total: number;
-      }>(`/api/management/users?${params}`);
-      return res.data;
-    },
-    placeholderData: keepPreviousData,
-  });
+  const data = usersRes
+    ? { data: usersRes.data as User[], total: usersRes.total }
+    : undefined;
 
   const columns: GridColDef<User>[] = [
     {

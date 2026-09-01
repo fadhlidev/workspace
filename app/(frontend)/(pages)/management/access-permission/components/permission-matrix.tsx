@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@backend/api/client";
+import { useTRPC } from "@frontend/trpc/client";
 import { goeyToast } from "goey-toast";
 import {
   Box,
@@ -45,38 +45,31 @@ const ROLES = [
 
 export function PermissionMatrix() {
   const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-  const { data: resourcesData, isLoading: resourcesLoading } = useQuery({
-    queryKey: ["/api/management/access-permission/resources"],
-    queryFn: async () => {
-      const res = await api.get("/api/management/access-permission/resources");
-      return res.data.data as Resource[];
-    },
-  });
+  const { data: resourcesRes, isLoading: resourcesLoading } = useQuery(
+    trpc.management.accessPermissions.getResources.queryOptions(),
+  );
 
-  const { data: actionsData, isLoading: actionsLoading } = useQuery({
-    queryKey: ["/api/management/access-permission/actions"],
-    queryFn: async () => {
-      const res = await api.get("/api/management/access-permission/actions");
-      return res.data.data as Action[];
-    },
-  });
+  const { data: actionsRes, isLoading: actionsLoading } = useQuery(
+    trpc.management.accessPermissions.getActions.queryOptions(),
+  );
 
-  const { data: rolePermissionsData, isLoading: rpLoading } = useQuery({
-    queryKey: ["/api/management/access-permission/role-permissions"],
-    queryFn: async () => {
-      const res = await api.get(
-        "/api/management/access-permission/role-permissions",
-      );
-      return res.data.data as RolePermission[];
-    },
-  });
+  const { data: rolePermissionsRes, isLoading: rpLoading } = useQuery(
+    trpc.management.accessPermissions.getRolePermissions.queryOptions(),
+  );
 
-  const resources = useMemo(() => resourcesData ?? [], [resourcesData]);
-  const actions = useMemo(() => actionsData ?? [], [actionsData]);
+  const resources = useMemo(
+    () => (resourcesRes?.data as Resource[]) ?? [],
+    [resourcesRes],
+  );
+  const actions = useMemo(
+    () => (actionsRes?.data as Action[]) ?? [],
+    [actionsRes],
+  );
   const rolePermissionsList = useMemo(
-    () => rolePermissionsData ?? [],
-    [rolePermissionsData],
+    () => (rolePermissionsRes?.data as RolePermission[]) ?? [],
+    [rolePermissionsRes],
   );
 
   const [pendingToggles, setPendingToggles] = useState<Map<string, boolean>>(
@@ -100,30 +93,15 @@ export function PermissionMatrix() {
     [pendingToggles, serverSelected],
   );
 
-  const { mutate: toggleMutate } = useMutation({
-    mutationFn: async ({
-      targetRole,
-      resourceId,
-      actionId,
-      enabled,
-    }: {
-      targetRole: string;
-      resourceId: string;
-      actionId: string;
-      enabled: boolean;
-    }) => {
-      const res = await api.post(
-        "/api/management/access-permission/role-permissions/toggle",
-        { targetRole, resourceId, actionId, enabled },
-      );
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/management/access-permission/role-permissions"],
-      });
-    },
-  });
+  const { mutate: toggleMutate } = useMutation(
+    trpc.management.accessPermissions.toggleRolePermission.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          trpc.management.accessPermissions.getRolePermissions.queryFilter(),
+        );
+      },
+    }),
+  );
 
   const handleToggle = useCallback(
     (
@@ -150,20 +128,13 @@ export function PermissionMatrix() {
             });
             goeyToast.success(data.message);
           },
-          onError: (err: {
-            response?: { data?: { message?: string } };
-            message?: string;
-          }) => {
+          onError: (err) => {
             setPendingToggles((prev) => {
               const next = new Map(prev);
               next.delete(key);
               return next;
             });
-            goeyToast.error(
-              err.response?.data?.message ??
-                err.message ??
-                "Failed to update permission",
-            );
+            goeyToast.error(err.message || "Failed to update permission");
           },
         },
       );

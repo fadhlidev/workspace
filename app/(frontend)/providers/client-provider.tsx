@@ -1,8 +1,8 @@
 "use client";
 
-import type { PropsWithChildren } from "react";
+import { useState, type PropsWithChildren } from "react";
 import { ProgressProvider } from "@bprogress/next/app";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, getSession } from "next-auth/react";
 import {
   environmentManager,
   QueryClient,
@@ -13,6 +13,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { GooeyToaster } from "goey-toast";
 import { useTheme } from "@mui/material/styles";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { TRPCProvider } from "@frontend/trpc/client";
+import type { AppRouter } from "@backend/trpc/root";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -42,6 +45,25 @@ export function ClientProvider({ children }: PropsWithChildren) {
   const queryClient = getQueryClient();
   const theme = useTheme();
 
+  const [trpcClient] = useState(() =>
+    createTRPCClient<AppRouter>({
+      links: [
+        httpBatchLink({
+          url: "/api/trpc",
+          async headers() {
+            const session = await getSession();
+            if (session?.accessToken) {
+              return {
+                Authorization: `Bearer ${session.accessToken}`,
+              };
+            }
+            return {};
+          },
+        }),
+      ],
+    }),
+  );
+
   return (
     <ProgressProvider
       color={theme.palette.primary.main}
@@ -53,9 +75,11 @@ export function ClientProvider({ children }: PropsWithChildren) {
       <SessionProvider>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <QueryClientProvider client={queryClient}>
-            {children}
-            <GooeyToaster position="top-right" closeButton showProgress />
-            <ReactQueryDevtools initialIsOpen={false} />
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+              {children}
+              <GooeyToaster position="top-right" closeButton showProgress />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </TRPCProvider>
           </QueryClientProvider>
         </LocalizationProvider>
       </SessionProvider>

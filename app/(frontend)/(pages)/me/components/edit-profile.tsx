@@ -1,11 +1,11 @@
 "use client";
 
-import { api } from "@backend/api/client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useTRPC } from "@frontend/trpc/client";
 import {
   Box,
   Button,
@@ -32,38 +32,33 @@ type ProfileInput = z.infer<typeof profileSchema>;
 export function EditProfile() {
   const { update } = useSession();
   const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-  const { data: profileData, isLoading } = useQuery({
-    queryKey: ["/api/user/me"],
-    queryFn: async () => {
-      const res = await api.get("/api/user/me");
-      return res.data.user as ProfileInput & { role: string };
-    },
-  });
+  const { data: profileData, isLoading } = useQuery(
+    trpc.profile.getMe.queryOptions(),
+  );
 
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     values: {
-      username: profileData?.username ?? "",
-      name: profileData?.name ?? "",
-      email: profileData?.email ?? "",
+      username: profileData?.user.username ?? "",
+      name: profileData?.user.name ?? "",
+      email: profileData?.user.email ?? "",
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: ProfileInput) => {
-      const res = await api.put("/api/user/me", data);
-      return res.data;
-    },
-    onSuccess: async () => {
-      gooeyToast.success("Profile updated");
-      await queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
-      await update();
-    },
-    onError: () => {
-      gooeyToast.error("Failed to update profile");
-    },
-  });
+  const mutation = useMutation(
+    trpc.profile.updateMe.mutationOptions({
+      onSuccess: async () => {
+        gooeyToast.success("Profile updated");
+        await queryClient.invalidateQueries(trpc.profile.getMe.queryFilter());
+        await update();
+      },
+      onError: () => {
+        gooeyToast.error("Failed to update profile");
+      },
+    }),
+  );
 
   return (
     <Card

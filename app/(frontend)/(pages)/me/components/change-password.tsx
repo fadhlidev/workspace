@@ -1,12 +1,11 @@
 "use client";
 
-import type { AxiosError } from "axios";
 import { z } from "zod";
-import { api } from "@backend/api/client";
 import { useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useTRPC } from "@frontend/trpc/client";
 import {
   Box,
   Button,
@@ -81,6 +80,7 @@ export function ChangePassword() {
   const [showCur, setShowCur] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showCon, setShowCon] = useState(false);
+  const trpc = useTRPC();
 
   const form = useForm<PasswordInput>({
     resolver: zodResolver(passwordSchema),
@@ -91,23 +91,17 @@ export function ChangePassword() {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: PasswordInput) => {
-      const res = await api.put("/api/user/me/password", {
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-      });
-      return res.data;
-    },
-    onSuccess: () => {
-      gooeyToast.success("Password updated");
-      form.reset();
-    },
-    onError: (err: AxiosError<{ message: string }>) => {
-      const msg = err?.response?.data?.message ?? "Failed to update password";
-      gooeyToast.error(msg);
-    },
-  });
+  const mutation = useMutation(
+    trpc.profile.changePassword.mutationOptions({
+      onSuccess: () => {
+        gooeyToast.success("Password updated");
+        form.reset();
+      },
+      onError: (err) => {
+        gooeyToast.error(err.message || "Failed to update password");
+      },
+    }),
+  );
 
   return (
     <Card
@@ -161,7 +155,12 @@ export function ChangePassword() {
         <Stack
           component="form"
           spacing={2.5}
-          onSubmit={form.handleSubmit((data) => mutation.mutate(data))}
+          onSubmit={form.handleSubmit((data) =>
+            mutation.mutate({
+              currentPassword: data.currentPassword,
+              newPassword: data.newPassword,
+            }),
+          )}
         >
           <PasswordField
             form={form}

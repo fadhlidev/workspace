@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import LoginForm from "@/app/login/components/login-form";
+import LoginForm from "@pages/login/components/login-form";
 
 export const metadata: Metadata = {
   title: "Login | Fadhlidev Dashboard",

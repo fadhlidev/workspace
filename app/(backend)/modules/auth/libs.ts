@@ -1,5 +1,10 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { db } from "@storage/database";
+import { users } from "@storage/database/schemas/users";
+import { eq } from "drizzle-orm";
+import { isPasswordMatch } from "@backend/modules/auth/helpers";
+import { signToken, verifyToken } from "@backend/helpers/jwt";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,23 +17,48 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
 
-        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/login`, {
-          method: "POST",
-          body: JSON.stringify(credentials),
-          headers: { "Content-Type": "application/json" },
-        });
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.username, credentials.username))
+          .limit(1);
 
-        if (!res.ok) return null;
+        if (!user) return null;
 
-        const data = await res.json();
+        const valid = await isPasswordMatch(
+          credentials.password,
+          user.passwordHash,
+        );
+        if (!valid) return null;
+
+        const accessToken = await signToken(
+          {
+            sub: user.id,
+            username: user.username,
+            role: user.role,
+            type: "access",
+          },
+          "15m",
+        );
+
+        const refreshToken = await signToken(
+          {
+            sub: user.id,
+            username: user.username,
+            role: user.role,
+            type: "refresh",
+          },
+          "7d",
+        );
 
         return {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          username: data.user.username,
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          accessToken,
+          refreshToken,
         };
       },
     }),
@@ -54,25 +84,35 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        const res = await fetch(
-          `${process.env.NEXTAUTH_URL}/api/auth/refresh`,
-          {
-            method: "POST",
-            body: JSON.stringify({ refreshToken: token.refreshToken }),
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-
-        if (!res.ok) {
+        const payload = await verifyToken(token.refreshToken as string);
+        if (!payload || payload.type !== "refresh") {
           return { ...token, error: "RefreshAccessTokenError" };
         }
 
-        const data = await res.json();
+        const newAccessToken = await signToken(
+          {
+            sub: payload.sub,
+            username: payload.username,
+            role: payload.role,
+            type: "access",
+          },
+          "15m",
+        );
+
+        const newRefreshToken = await signToken(
+          {
+            sub: payload.sub,
+            username: payload.username,
+            role: payload.role,
+            type: "refresh",
+          },
+          "7d",
+        );
 
         return {
           ...token,
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken ?? token.refreshToken,
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
           accessTokenExp: Math.floor(Date.now() / 1000) + 15 * 60,
           error: undefined,
         };

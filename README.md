@@ -1,6 +1,6 @@
 # Fadhlidev Workspace
 
-Dashboard Workspace — built with Next.js 16 App Router + Elysia.
+Dashboard Workspace — built with Next.js 16 App Router + tRPC.
 
 ## Prerequisites
 
@@ -87,19 +87,22 @@ flowchart LR
 
 ```
 app/
-├── (backend)/            # Server-side code (Elysia)
-│   ├── api/              # API route handlers
-│   ├── modules/          # Feature modules (auth, management, profile, rbac)
-│   └── plugins/          # Elysia plugins (jwt, permission, rate-limit)
+├── (backend)/            # Server-side code (tRPC)
+│   ├── api/              # App Router route handlers (/api/trpc/[trpc])
+│   ├── helpers/          # Server helpers (JWT, rate-limiting)
+│   ├── modules/          # Business logic & NextAuth config
+│   └── trpc/             # tRPC core, context, procedures, & grouped routers
 ├── (frontend)/           # Client-side code
 │   ├── (pages)/          # Route pages (login, management, me)
 │   ├── components/       # UI components (common, layout, styled, ui)
 │   ├── configs/          # Frontend configs (menus)
 │   ├── hooks/            # Custom hooks (menu, permissions, profile)
-│   ├── providers/        # Context providers
+│   ├── providers/        # Context providers (TRPCProvider, SessionProvider, etc.)
+│   ├── trpc/             # tRPC React client context
 │   └── styles/           # Theme & fonts
 ├── (shared)/             # Code shared between frontend & backend
 │   ├── helpers/
+│   ├── schemas/
 │   └── types/
 └── (storage)/            # Persistence layer
     └── database/         # Drizzle setup
@@ -113,15 +116,15 @@ Route groups (`(backend)`, `(frontend)`, etc.) don't affect URL paths — they o
 
 ## Tech Stack
 
-| Layer      | Technology                      |
-| ---------- | ------------------------------- |
-| Framework  | Next.js 16 App Router           |
-| API Server | Elysia 1.x                      |
-| ORM        | Drizzle ORM + drizzle-kit       |
-| Database   | PostgreSQL                      |
-| Auth       | NextAuth v4 (Credentials) + JWT |
-| UI         | MUI v9 + Tailwind v4            |
-| State      | TanStack Query + Zustand        |
-| Validation | Zod                             |
+| Layer         | Technology                               |
+| ------------- | ---------------------------------------- |
+| Framework     | Next.js 16 App Router                    |
+| API Framework | tRPC v11                                 |
+| ORM           | Drizzle ORM + drizzle-kit                |
+| Database      | PostgreSQL                               |
+| Auth          | NextAuth v4 (Credentials) + JWT (`jose`) |
+| UI            | MUI v9 + Tailwind v4                     |
+| State         | TanStack Query + Zustand                 |
+| Validation    | Zod                                      |
 
 > **Note:** This project uses **Bun** as its runtime — prefer `bun run <script>` if available, though `npm run` works too.
