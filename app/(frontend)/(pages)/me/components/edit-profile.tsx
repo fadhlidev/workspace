@@ -61,79 +61,47 @@ export function EditProfile() {
   );
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: 3,
-        height: "100%",
-      }}
-    >
-      <Box
-        sx={{
-          px: 3,
-          pt: 3,
-          pb: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-        }}
-      >
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: (theme) => `${theme.palette.primary.main}12`,
-            color: "primary.main",
-          }}
-        >
+    <Card variant="outlined" className="h-full rounded-3xl">
+      <Box className="flex items-center gap-3 px-6 pt-6 pb-4">
+        <Box className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#28282812] text-[#282828]">
           <AtSign className="size-4" />
         </Box>
         <Box>
-          <Typography
-            className="font-lato"
-            sx={{ fontWeight: 700, fontSize: 15, color: "#1e293b" }}
-          >
+          <Typography className="font-lato text-[15px] font-bold text-slate-800">
             Edit Profile
           </Typography>
-          <Typography
-            className="font-lato"
-            sx={{ fontSize: 12, color: "#94a3b8" }}
-          >
+          <Typography className="font-lato text-xs text-slate-400">
             Update your personal information
           </Typography>
         </Box>
       </Box>
       <Divider />
-      <CardContent sx={{ p: 3 }}>
+      <CardContent className="p-6">
         {isLoading ? (
           <Stack spacing={2.5}>
             <Skeleton
               variant="rounded"
               width="100%"
               height={40}
-              sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+              className="bg-black/[0.06]"
             />
             <Skeleton
               variant="rounded"
               width="100%"
               height={40}
-              sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+              className="bg-black/[0.06]"
             />
             <Skeleton
               variant="rounded"
               width="100%"
               height={40}
-              sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+              className="bg-black/[0.06]"
             />
             <Skeleton
               variant="rounded"
               width={140}
               height={36}
-              sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+              className="bg-black/[0.06]"
             />
           </Stack>
         ) : (
@@ -144,7 +112,6 @@ export function EditProfile() {
           >
             <TextField
               label="Username"
-              size="small"
               fullWidth
               slotProps={{
                 input: {
@@ -159,7 +126,6 @@ export function EditProfile() {
             />
             <TextField
               label="Name"
-              size="small"
               fullWidth
               slotProps={{
                 input: {
@@ -174,7 +140,6 @@ export function EditProfile() {
             />
             <TextField
               label="Email"
-              size="small"
               fullWidth
               slotProps={{
                 input: {
@@ -192,6 +157,7 @@ export function EditProfile() {
               variant="contained"
               disableElevation
               disabled={mutation.isPending}
+              className="h-12"
               startIcon={
                 mutation.isPending ? (
                   <CircularProgress size={16} />
@@ -199,12 +165,6 @@ export function EditProfile() {
                   <Save className="size-4" />
                 )
               }
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 600,
-                py: 1,
-              }}
             >
               {mutation.isPending ? "Saving..." : "Save Changes"}
             </Button>

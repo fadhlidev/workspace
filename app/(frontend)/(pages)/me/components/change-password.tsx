@@ -52,7 +52,6 @@ function PasswordField({
     <TextField
       label={label}
       type={show ? "text" : "password"}
-      size="small"
       fullWidth
       {...form.register(field)}
       error={!!form.formState.errors[field]}
@@ -104,54 +103,22 @@ export function ChangePassword() {
   );
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: 3,
-        height: "100%",
-      }}
-    >
-      <Box
-        sx={{
-          px: 3,
-          pt: 3,
-          pb: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-        }}
-      >
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: (theme) => `${theme.palette.warning.main}12`,
-            color: "warning.dark",
-          }}
-        >
+    <Card variant="outlined" className="h-full rounded-3xl">
+      <Box className="flex items-center gap-3 px-6 pt-6 pb-4">
+        <Box className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#ED6C0212] text-[#B26A00]">
           <KeyRound className="size-4" />
         </Box>
         <Box>
-          <Typography
-            className="font-lato"
-            sx={{ fontWeight: 700, fontSize: 15, color: "#1e293b" }}
-          >
+          <Typography className="font-lato text-[15px] font-bold text-slate-800">
             Change Password
           </Typography>
-          <Typography
-            className="font-lato"
-            sx={{ fontSize: 12, color: "#94a3b8" }}
-          >
+          <Typography className="font-lato text-xs text-slate-400">
             Update your account password
           </Typography>
         </Box>
       </Box>
       <Divider />
-      <CardContent sx={{ p: 3 }}>
+      <CardContent className="p-6">
         <Stack
           component="form"
           spacing={2.5}
@@ -188,6 +155,7 @@ export function ChangePassword() {
             variant="contained"
             disableElevation
             disabled={mutation.isPending}
+            className="h-12 bg-[#ED6C02] text-white hover:bg-[#B26A00]"
             startIcon={
               mutation.isPending ? (
                 <CircularProgress size={16} />
@@ -195,14 +163,6 @@ export function ChangePassword() {
                 <KeyRound className="size-4" />
               )
             }
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 600,
-              py: 1,
-              bgcolor: "warning.main",
-              "&:hover": { bgcolor: "warning.dark" },
-            }}
           >
             {mutation.isPending ? "Updating..." : "Update Password"}
           </Button>

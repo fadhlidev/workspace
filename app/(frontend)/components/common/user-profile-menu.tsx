@@ -167,7 +167,6 @@ export function UserProfileMenu() {
               gap: 1.5,
               p: 1.5,
               width: "100%",
-              borderRadius: 2,
               bgcolor: "grey.50",
             }}
           >
@@ -190,7 +189,7 @@ export function UserProfileMenu() {
             <Button
               onClick={handleCancel}
               variant="outlined"
-              className="h-12 rounded-lg"
+              className="h-12"
               fullWidth
             >
               Cancel
@@ -202,7 +201,7 @@ export function UserProfileMenu() {
               onClick={handleLogout}
               autoFocus
               startIcon={<LogOut className="size-4" />}
-              className="h-12 rounded-lg"
+              className="h-12"
             >
               Yes, Leave
             </Button>

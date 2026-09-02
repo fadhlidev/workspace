@@ -33,94 +33,45 @@ export function ProfileHeader() {
   const { name, username, email, role, isLoading } = useProfile();
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: 4,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          height: 136,
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.primary.light} 100%)`,
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          className="max-sm:hidden"
-          sx={{
-            position: "absolute",
-            top: -40,
-            right: -40,
-            width: 200,
-            height: 200,
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.06)",
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: -60,
-            left: -20,
-            width: 160,
-            height: 160,
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.04)",
-          }}
-        />
+    <Card variant="outlined" className="relative overflow-hidden rounded-4xl">
+      <Box className="relative h-[136px] overflow-hidden bg-[linear-gradient(135deg,#000_0%,#282828_50%,#535353_100%)]">
+        <Box className="absolute -top-10 -right-10 h-[200px] w-[200px] rounded-full bg-white/[0.06] max-sm:hidden" />
+        <Box className="absolute -bottom-[60px] -left-5 h-[160px] w-[160px] rounded-full bg-white/[0.04]" />
       </Box>
-      <CardContent
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 3,
-          mt: -10,
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
+      <CardContent className="relative z-10 -mt-10 flex items-center gap-6">
         {isLoading ? (
           <>
             <Skeleton
               variant="circular"
               width={88}
               height={88}
-              sx={{
-                border: "4px solid white",
-                flexShrink: 0,
-                bgcolor: "rgba(0,0,0,0.20)",
-              }}
+              className="shrink-0 border-4 border-white bg-black/20"
             />
-            <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Box className="min-w-0 flex-1">
               <Skeleton
                 variant="text"
                 width={180}
                 height={32}
-                sx={{ bgcolor: "rgba(0,0,0,0.08)" }}
+                className="bg-black/[0.08]"
               />
               <Skeleton
                 variant="text"
                 width={120}
                 height={20}
-                sx={{ mt: 0.5, bgcolor: "rgba(0,0,0,0.06)" }}
+                className="mt-0.5 bg-black/[0.06]"
               />
-              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              <Box className="mt-2 flex gap-1">
                 <Skeleton
                   variant="rounded"
                   width={80}
                   height={24}
-                  sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+                  className="bg-black/[0.06]"
                 />
                 <Skeleton
                   variant="rounded"
                   width={160}
                   height={24}
-                  sx={{ bgcolor: "rgba(0,0,0,0.06)" }}
+                  className="bg-black/[0.06]"
                 />
               </Box>
             </Box>
@@ -128,70 +79,34 @@ export function ProfileHeader() {
         ) : (
           <>
             <Avatar
-              sx={{
-                width: 88,
-                height: 88,
-                border: "4px solid white",
-                bgcolor: stringToColor(name),
-                fontSize: 32,
-                fontWeight: 700,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                flexShrink: 0,
-              }}
+              className="h-[88px] w-[88px] shrink-0 border-4 border-white text-[32px] font-bold shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
+              style={{ backgroundColor: stringToColor(name) }}
             >
               {getInitials(name || "?")}
             </Avatar>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                className="font-lato text-white"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: 20,
-                  lineHeight: 1.3,
-                }}
-              >
+            <Box className="min-w-0">
+              <Typography className="font-lato text-xl leading-[1.3] font-bold text-white">
                 {name || "..."}
               </Typography>
-              <Typography
-                className="font-lato text-white/80"
-                sx={{ fontSize: 13, mt: 0.25 }}
-              >
+              <Typography className="font-lato mt-0.5 text-[13px] text-white/80">
                 @{username || "..."}
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mt: 3, flexWrap: "wrap" }}>
+              <Box className="mt-3 flex flex-wrap gap-1">
                 <Chip
                   label={role || "user"}
                   size="small"
                   icon={<ShieldCheck className="size-3" />}
-                  sx={{
-                    height: 24,
-                    textTransform: "capitalize",
-                    fontWeight: 600,
-                    fontSize: 11,
-                    bgcolor: (theme) =>
-                      role === "admin"
-                        ? `${theme.palette.warning.main}16`
-                        : `${theme.palette.primary.main}10`,
-                    color: (theme) =>
-                      role === "admin"
-                        ? theme.palette.warning.dark
-                        : theme.palette.primary.main,
-                    "& .MuiChip-icon": { ml: 0.5 },
-                  }}
+                  className={`h-6 text-[11px] font-semibold capitalize [&_.MuiChip-icon]:ml-0.5 ${
+                    role === "admin"
+                      ? "bg-[#ED6C0216] text-[#B26A00]"
+                      : "bg-[#28282810] text-[#282828]"
+                  }`}
                 />
                 <Chip
                   label={email || ""}
                   size="small"
                   icon={<Mail className="size-3" />}
-                  sx={{
-                    height: 24,
-                    fontWeight: 500,
-                    fontSize: 11,
-                    bgcolor: "#f1f5f9",
-                    color: "#475569",
-                    "& .MuiChip-icon": { ml: 0.5 },
-                    maxWidth: 240,
-                  }}
+                  className="h-6 max-w-[240px] bg-[#f1f5f9] text-[11px] font-medium text-[#475569] [&_.MuiChip-icon]:ml-0.5"
                 />
               </Box>
             </Box>

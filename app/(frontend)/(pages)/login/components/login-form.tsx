@@ -3,7 +3,7 @@
 import { cx } from "classix";
 import Image from "next/image";
 import { useState } from "react";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +17,6 @@ import {
   Alert,
   Typography,
   Box,
-  Divider,
 } from "@mui/material";
 import {
   loginRequestSchema,
@@ -25,7 +24,7 @@ import {
 } from "@shared/schemas/auth/login";
 
 const textFieldClasses =
-  "[&_.MuiOutlinedInput-root]:rounded-[10px] [&_.MuiOutlinedInput-root]:bg-white [&_.MuiOutlinedInput-notchedOutline]:border-[#e0e0e0] hover:[&_.MuiOutlinedInput-notchedOutline]:border-[#b0b0b0] [&_.Mui-focused_.MuiOutlinedInput-notchedOutline]:border-primary";
+  "[&_.MuiOutlinedInput-root]:bg-white/80 [&_.MuiOutlinedInput-root]:backdrop-blur-sm [&_.MuiOutlinedInput-notchedOutline]:border-[#c4b8a8] hover:[&_.MuiOutlinedInput-notchedOutline]:border-[#7a6e62] [&_.Mui-focused_.MuiOutlinedInput-notchedOutline]:border-[#1D2F4D]";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -61,126 +60,176 @@ export default function LoginForm() {
   });
 
   return (
-    <Box component="main" className="flex min-h-screen flex-col bg-[#f8f9fb]">
-      <Box component="header" className="px-3 py-2.5 sm:px-4 sm:py-3 md:px-6">
-        <Image
-          src="/images/logo.svg"
-          alt="Logo"
-          width={160}
-          height={40}
-          className="h-8 w-auto object-contain"
-          priority
-        />
-      </Box>
+    <Box
+      component="main"
+      className="relative flex min-h-screen overflow-hidden"
+      style={{ backgroundColor: "#FAFAE6" }}
+    >
+      <Image
+        src="/images/login-bg.jpg"
+        alt=""
+        width={0}
+        height={0}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          right: "-10%",
+          top: "50%",
+          transform: "translateY(-50%)",
+          height: "70%",
+          width: "auto",
+          pointerEvents: "none",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0%, black 28%)",
+          maskImage: "linear-gradient(to right, transparent 0%, black 28%)",
+        }}
+      />
 
-      <Divider className="block sm:hidden" />
+      <Box className="relative z-10 flex w-full flex-col">
+        <Box
+          component="header"
+          className="flex items-center px-8 py-6 sm:px-10 md:px-14"
+        >
+          <Image
+            src="/images/logo.svg"
+            alt="Logo"
+            width={160}
+            height={40}
+            className="h-8 w-auto object-contain"
+            priority
+          />
+        </Box>
 
-      <Box className="flex flex-1 justify-center px-2 pt-4 pb-4 sm:items-center sm:pt-0 sm:pb-8">
-        <Box className="w-full max-w-110">
-          <Typography
-            className="font-lato text-primary text-[1.75rem] font-black sm:text-[2.125rem]"
-            variant="h4"
-          >
-            Login
-          </Typography>
-          <Typography className="mb-8 text-[0.95rem] text-black/60">
-            Hi, Welcome back 👋
-          </Typography>
-
-          <Box
-            component="form"
-            onSubmit={handleSubmit((data) => mutate(data))}
-            className="flex flex-col"
-          >
-            <Box className="mb-6 flex items-center gap-4">
-              <Box className="h-px flex-1 bg-[#e0e0e0]" />
-              <Typography className="text-[0.8rem] whitespace-nowrap text-black/40">
-                Login to your account
-              </Typography>
-              <Box className="h-px flex-1 bg-[#e0e0e0]" />
-            </Box>
-
+        <Box className="flex flex-1 items-center justify-start px-8 pb-12 sm:px-10 md:px-14">
+          <Box className={cx("w-full", "max-w-sm md:max-w-md")}>
             <Typography
-              component="label"
-              htmlFor="username"
-              className="text-foreground mb-1.5 text-sm font-medium"
+              component="h1"
+              variant="h4"
+              className="font-lato text-primary mb-10 text-[1.75rem] font-black sm:text-[2.2rem]"
+              style={{ fontFamily: "var(--font-lato)" }}
             >
-              Username
+              Welcome back!
             </Typography>
-            <TextField
-              id="username"
-              placeholder="E.g. johndoe"
-              autoComplete="username"
-              fullWidth
-              size="small"
-              className={cx("mb-5", textFieldClasses)}
-              {...register("username")}
-              error={!!errors.username}
-              helperText={errors.username?.message}
-            />
 
-            <Typography
-              component="label"
-              htmlFor="password"
-              className="text-primary mb-1.5 text-sm font-medium"
+            <Box
+              component="form"
+              onSubmit={handleSubmit((data) => mutate(data))}
+              className="flex flex-col gap-5"
             >
-              Password
-            </Typography>
-            <TextField
-              id="password"
-              placeholder="Enter your password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              fullWidth
-              size="small"
-              className={cx("mb-5", textFieldClasses)}
-              {...register("password")}
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                        edge="end"
-                        size="small"
-                      >
-                        {showPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+              <Box>
+                <Typography
+                  component="label"
+                  htmlFor="username"
+                  className="mb-1.5 block text-sm font-medium"
+                  style={{
+                    fontFamily: "var(--font-lato)",
+                    color: "#3b2f24",
+                  }}
+                >
+                  Username
+                </Typography>
+                <TextField
+                  id="username"
+                  placeholder="E.g. johndoe"
+                  autoComplete="username"
+                  fullWidth
+                  className={textFieldClasses}
+                  {...register("username")}
+                  error={!!errors.username}
+                  helperText={errors.username?.message}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <User size={16} style={{ color: "#9a8878" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Box>
 
-            {errors.root && (
-              <Alert
-                severity="error"
-                className="mb-5 items-center rounded-[10px]"
+              <Box>
+                <Typography
+                  component="label"
+                  htmlFor="password"
+                  className="mb-1.5 block text-sm font-medium"
+                  style={{
+                    fontFamily: "var(--font-lato)",
+                    color: "#3b2f24",
+                  }}
+                >
+                  Password
+                </Typography>
+                <TextField
+                  id="password"
+                  placeholder="Enter your password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  fullWidth
+                  className={textFieldClasses}
+                  {...register("password")}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock size={16} style={{ color: "#9a8878" }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                            edge="end"
+                            size="small"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Box>
+
+              {errors.root && (
+                <Alert
+                  severity="error"
+                  className="items-center"
+                  style={{ borderRadius: "0px" }}
+                >
+                  {errors.root.message}
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="large"
+                disabled={isPending}
+                className="gap-2.5 py-3.5 text-[0.95rem] font-bold normal-case"
+                style={{
+                  fontFamily: "var(--font-lato)",
+                  color: "#ffffff",
+                  paddingTop: "14px",
+                  paddingBottom: "14px",
+                  opacity: isPending ? 0.6 : 1,
+                }}
               >
-                {errors.root.message}
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={isPending}
-              className="bg-primary disabled:bg-primary gap-2.5 rounded-[10px] py-3.5 text-[0.95rem] font-bold text-white normal-case hover:bg-[#162440] disabled:text-white disabled:opacity-60"
-            >
-              <LogIn size={18} />
-              {isPending ? "Signing in..." : "Login"}
-            </Button>
+                <LogIn size={18} />
+                {isPending ? "Signing in…" : "Log in"}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
