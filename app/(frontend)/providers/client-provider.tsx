@@ -2,6 +2,7 @@
 
 import { useState, type PropsWithChildren } from "react";
 import { ProgressProvider } from "@bprogress/next/app";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SessionProvider, getSession } from "next-auth/react";
 import {
   environmentManager,
@@ -76,7 +77,7 @@ export function ClientProvider({ children }: PropsWithChildren) {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <QueryClientProvider client={queryClient}>
             <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-              {children}
+              <NuqsAdapter>{children}</NuqsAdapter>
               <GooeyToaster position="top-right" closeButton showProgress />
               <ReactQueryDevtools initialIsOpen={false} />
             </TRPCProvider>
