@@ -10,7 +10,7 @@ interface TriggerChildrenProps<T> {
 }
 
 interface TriggerContentProps<T> {
-  value?: T;
+  value?: T | null;
   open: boolean;
   anchorEl: HTMLElement | null;
   onClose: () => void;
@@ -22,20 +22,20 @@ interface TriggerProps<T> {
 }
 
 export function Trigger<T>({ children, content }: TriggerProps<T>) {
-  const [value, setValue] = useState<T | undefined>();
+  const [value, setValue] = useState<T | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [open, toggleOpen] = useToggle(false);
 
   function handleOpen(event?: MouseEvent<HTMLElement>, value?: T) {
     if (event) setAnchorEl(event.currentTarget);
     toggleOpen(true);
-    setValue(value);
+    if (value) setValue(value);
   }
 
   function handleClose() {
     setAnchorEl(null);
     toggleOpen(false);
-    setValue(undefined);
+    setValue(null);
   }
 
   return (
