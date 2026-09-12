@@ -27,7 +27,7 @@ const textFieldClasses = cx(
   "[&_.MuiOutlinedInput-input]:font-lato [&_.MuiOutlinedInput-input::placeholder]:opacity-100",
 );
 
-export default function LoginForm() {
+export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
