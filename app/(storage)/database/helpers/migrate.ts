@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 import { sql } from "drizzle-orm";
 import { db, closeDb } from "@storage/database";

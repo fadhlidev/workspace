@@ -1,4 +1,3 @@
-import "dotenv/config";
 import bcrypt from "bcrypt";
 import { eq, and } from "drizzle-orm";
 import { db, closeDb } from "@storage/database";
