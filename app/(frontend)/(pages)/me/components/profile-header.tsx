@@ -34,9 +34,9 @@ export function ProfileHeader() {
 
   return (
     <Card variant="outlined" className="relative overflow-hidden rounded-4xl">
-      <Box className="relative h-[136px] overflow-hidden bg-[linear-gradient(135deg,#000_0%,#282828_50%,#535353_100%)]">
-        <Box className="absolute -top-10 -right-10 h-[200px] w-[200px] rounded-full bg-white/[0.06] max-sm:hidden" />
-        <Box className="absolute -bottom-[60px] -left-5 h-[160px] w-[160px] rounded-full bg-white/[0.04]" />
+      <Box className="relative h-34 overflow-hidden bg-[linear-gradient(135deg,#000_0%,#282828_50%,#535353_100%)]">
+        <Box className="absolute -top-10 -right-10 size-50 rounded-full bg-white/6 max-sm:hidden" />
+        <Box className="absolute -bottom-15 -left-5 size-40 rounded-full bg-white/4" />
       </Box>
       <CardContent className="relative z-10 -mt-10 flex items-center gap-6">
         {isLoading ? (
@@ -52,26 +52,26 @@ export function ProfileHeader() {
                 variant="text"
                 width={180}
                 height={32}
-                className="bg-black/[0.08]"
+                className="bg-black/8"
               />
               <Skeleton
                 variant="text"
                 width={120}
                 height={20}
-                className="mt-0.5 bg-black/[0.06]"
+                className="mt-0.5 bg-black/6"
               />
               <Box className="mt-2 flex gap-1">
                 <Skeleton
                   variant="rounded"
                   width={80}
                   height={24}
-                  className="bg-black/[0.06]"
+                  className="bg-black/6"
                 />
                 <Skeleton
                   variant="rounded"
                   width={160}
                   height={24}
-                  className="bg-black/[0.06]"
+                  className="bg-black/6"
                 />
               </Box>
             </Box>
@@ -79,7 +79,7 @@ export function ProfileHeader() {
         ) : (
           <>
             <Avatar
-              className="h-[88px] w-[88px] shrink-0 border-4 border-white text-[32px] font-bold shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
+              className="size-22 shrink-0 border-4 border-white text-[32px] font-bold shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
               style={{ backgroundColor: stringToColor(name) }}
             >
               {getInitials(name || "?")}
@@ -106,7 +106,7 @@ export function ProfileHeader() {
                   label={email || ""}
                   size="small"
                   icon={<Mail className="size-3" />}
-                  className="h-6 max-w-[240px] bg-[#f1f5f9] text-[11px] font-medium text-[#475569] [&_.MuiChip-icon]:ml-0.5"
+                  className="h-6 max-w-60 bg-[#f1f5f9] text-[11px] font-medium text-[#475569] [&_.MuiChip-icon]:ml-0.5"
                 />
               </Box>
             </Box>

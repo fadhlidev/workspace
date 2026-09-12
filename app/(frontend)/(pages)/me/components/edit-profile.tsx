@@ -78,25 +78,25 @@ export function EditProfile() {
               variant="rounded"
               width="100%"
               height={40}
-              className="bg-black/[0.06]"
+              className="bg-black/6"
             />
             <Skeleton
               variant="rounded"
               width="100%"
               height={40}
-              className="bg-black/[0.06]"
+              className="bg-black/6"
             />
             <Skeleton
               variant="rounded"
               width="100%"
               height={40}
-              className="bg-black/[0.06]"
+              className="bg-black/6"
             />
             <Skeleton
               variant="rounded"
               width={140}
               height={36}
-              className="bg-black/[0.06]"
+              className="bg-black/6"
             />
           </Stack>
         ) : (
