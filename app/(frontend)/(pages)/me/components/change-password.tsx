@@ -21,11 +21,10 @@ import {
 } from "@mui/material";
 import { KeyRound, Eye, EyeOff } from "lucide-react";
 import { gooeyToast } from "goey-toast";
+import { changePasswordRequestSchema } from "@shared/schemas/profile";
 
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(6, "Min 6 characters"),
+const passwordSchema = changePasswordRequestSchema
+  .extend({
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

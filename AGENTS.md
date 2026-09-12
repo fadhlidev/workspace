@@ -15,6 +15,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - When uninstalling a dependency, run `bun remove <package>` first, and then run `npm i` to ensure `package-lock.json` is kept updated.
 - **Commit Messages**: Always format commit messages as `{action}({feature?}): {message}` followed by a description or list of changes (e.g. `feat(users): refactor user dialogs into standalone components`). Action examples: `feat`, `fix`, `refactor`, `chore`, `docs`.
 - **Imports**: Never use relative imports. Always use path aliases defined in `tsconfig.json`: `@/*`, `@backend/*`, `@frontend/*`, `@shared/*`, `@storage/*`, `@pages/*`.
+- **Shared Schemas**: Put zod schemas usable on both client and server (tRPC inputs, shared DTOs) in `@shared/schemas` (e.g. `@shared/schemas/auth/login`, `@shared/schemas/management/users`). Import them via the `@shared/*` alias and reuse their inferred types instead of duplicating shapes in modules.
 - **Verification**: Always run the format task (`npm run format` or `bun run format`) followed by the lint task (`npm run lint` or `bun run lint`) at the end of making changes to verify code correctness and formatting.
 
 ## Component Usage

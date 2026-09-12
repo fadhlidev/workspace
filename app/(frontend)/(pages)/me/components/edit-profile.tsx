@@ -1,11 +1,14 @@
 "use client";
 
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useTRPC } from "@frontend/trpc/client";
+import {
+  updateProfileRequestSchema,
+  type UpdateProfileRequest,
+} from "@shared/schemas/profile";
 import {
   Box,
   Button,
@@ -21,14 +24,6 @@ import {
 import { Save, AtSign, Mail, User } from "lucide-react";
 import { gooeyToast } from "goey-toast";
 
-const profileSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  name: z.string().min(1, "Name is required"),
-  email: z.email("Invalid email"),
-});
-
-type ProfileInput = z.infer<typeof profileSchema>;
-
 export function EditProfile() {
   const { update } = useSession();
   const queryClient = useQueryClient();
@@ -38,8 +33,8 @@ export function EditProfile() {
     trpc.profile.getMe.queryOptions(),
   );
 
-  const form = useForm<ProfileInput>({
-    resolver: zodResolver(profileSchema),
+  const form = useForm<UpdateProfileRequest>({
+    resolver: zodResolver(updateProfileRequestSchema),
     values: {
       username: profileData?.user.username ?? "",
       name: profileData?.user.name ?? "",

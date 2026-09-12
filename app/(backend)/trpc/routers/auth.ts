@@ -3,12 +3,7 @@ import {
   publicProcedure,
   rateLimitProcedure,
 } from "@backend/trpc/trpc";
-import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import { db } from "@storage/database";
-import { users } from "@storage/database/schemas/users";
-import { isPasswordMatch } from "@backend/modules/auth/helpers";
-import { signToken, verifyToken } from "@backend/helpers/jwt";
+import { login, refreshTokens } from "@backend/modules/auth/services";
 import {
   loginRequestSchema,
   refreshTokenRequestSchema,
@@ -24,94 +19,9 @@ const loginRateLimitProcedure = rateLimitProcedure({
 export const authRouter = router({
   login: loginRateLimitProcedure
     .input(loginRequestSchema)
-    .mutation(async ({ input }) => {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, input.username))
-        .limit(1);
-
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid username or password",
-        });
-      }
-
-      const valid = await isPasswordMatch(input.password, user.passwordHash);
-      if (!valid) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid username or password",
-        });
-      }
-
-      const accessToken = await signToken(
-        {
-          sub: user.id,
-          username: user.username,
-          role: user.role,
-          type: "access",
-        },
-        "15m",
-      );
-
-      const refreshToken = await signToken(
-        {
-          sub: user.id,
-          username: user.username,
-          role: user.role,
-          type: "refresh",
-        },
-        "7d",
-      );
-
-      return {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
-      };
-    }),
+    .mutation(async ({ input }) => login(input)),
 
   refresh: publicProcedure
     .input(refreshTokenRequestSchema)
-    .mutation(async ({ input }) => {
-      const payload = await verifyToken(input.refreshToken);
-      if (!payload || payload.type !== "refresh") {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid refresh token",
-        });
-      }
-
-      const { sub, username, role } = payload;
-
-      const accessToken = await signToken(
-        {
-          sub,
-          username,
-          role,
-          type: "access",
-        },
-        "15m",
-      );
-
-      const refreshToken = await signToken(
-        {
-          sub,
-          username,
-          role,
-          type: "refresh",
-        },
-        "7d",
-      );
-
-      return { accessToken, refreshToken };
-    }),
+    .mutation(async ({ input }) => refreshTokens(input.refreshToken)),
 });

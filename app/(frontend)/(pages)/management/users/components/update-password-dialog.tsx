@@ -25,11 +25,12 @@ import {
 import { Eye, EyeOff, KeyRound, Lock, UserKey } from "lucide-react";
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
+import { updateUserPasswordRequestSchema } from "@shared/schemas/management/users";
 import type { User } from "@pages/management/users/types/user";
 
-const updatePasswordSchema = z
-  .object({
-    newPassword: z.string().min(6, "Password minimal 6 karakter"),
+const updatePasswordSchema = updateUserPasswordRequestSchema
+  .omit({ id: true })
+  .extend({
     confirmPassword: z
       .string()
       .min(6, "Konfirmasi password minimal 6 karakter"),

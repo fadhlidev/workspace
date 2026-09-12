@@ -39,17 +39,13 @@ import {
 } from "lucide-react";
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
+import { createUserRequestSchema } from "@shared/schemas/management/users";
 
-const registerUserSchema = z
-  .object({
-    name: z.string().min(1, "Nama wajib diisi"),
-    username: z.string().min(3, "Username minimal 3 karakter"),
-    email: z.string().email("Format email tidak valid"),
-    password: z.string().min(6, "Password minimal 6 karakter"),
+const registerUserSchema = createUserRequestSchema
+  .extend({
     confirmPassword: z
       .string()
       .min(6, "Konfirmasi password minimal 6 karakter"),
-    role: z.enum(["user", "admin"]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Password tidak cocok",

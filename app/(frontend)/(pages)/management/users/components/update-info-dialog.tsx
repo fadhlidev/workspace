@@ -34,14 +34,10 @@ import {
 } from "lucide-react";
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
+import { updateUserRequestSchema } from "@shared/schemas/management/users";
 import type { User } from "@pages/management/users/types/user";
 
-const updateInfoSchema = z.object({
-  name: z.string().min(1, "Nama wajib diisi"),
-  username: z.string().min(3, "Username minimal 3 karakter"),
-  email: z.string().email("Format email tidak valid"),
-  role: z.enum(["user", "admin"]).optional(),
-});
+const updateInfoSchema = updateUserRequestSchema.omit({ id: true });
 
 type UpdateInfoInput = z.infer<typeof updateInfoSchema>;
 
