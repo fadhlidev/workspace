@@ -24,10 +24,11 @@ import {
 } from "@mui/x-data-grid";
 import { Search, UserPen, UserPlus, UserKey, UserRoundX } from "lucide-react";
 import { formatDate } from "@shared/helpers/formatter";
-import { UpdateInfoDialog } from "./update-info-dialog";
-import { UpdatePasswordDialog } from "./update-password-dialog";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
-import { RegisterUserDialog } from "./register-user-dialog";
+import { Trigger } from "@frontend/components/common/trigger";
+import { RegisterUserDialog } from "@pages/management/users/components/register-user-dialog";
+import { UpdateInfoDialog } from "@pages/management/users/components/update-info-dialog";
+import { UpdatePasswordDialog } from "@pages/management/users/components/update-password-dialog";
+import { DeleteConfirmDialog } from "@pages/management/users/components/delete-confirm-dialog";
 import type { User } from "@pages/management/users/types/user";
 
 function stringAvatar(name: string) {
@@ -42,6 +43,123 @@ function stringAvatar(name: string) {
       .join(""),
   };
 }
+
+const columns: GridColDef<User>[] = [
+  {
+    field: "name",
+    headerName: "Nama Pengguna",
+    width: 250,
+    flex: 1,
+    disableColumnMenu: true,
+    renderCell: (params) => (
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: "center", height: "100%" }}
+      >
+        <Avatar {...stringAvatar(params.row.name)} />
+        <Box>
+          <Typography variant="body2" className="font-semibold">
+            {params.row.name}
+          </Typography>
+          <Typography
+            variant="body2"
+            className="text-xs font-medium text-gray-500"
+          >
+            @{params.row.username}
+          </Typography>
+        </Box>
+      </Stack>
+    ),
+  },
+  {
+    field: "email",
+    headerName: "Alamat Email",
+    width: 280,
+    disableColumnMenu: true,
+  },
+  {
+    field: "createdAt",
+    headerName: "Ditambahkan",
+    width: 160,
+    disableColumnMenu: true,
+    renderCell: (params) => (
+      <Typography variant="body2" className="text-sm">
+        {formatDate(params.value)}
+      </Typography>
+    ),
+  },
+  {
+    field: "actions",
+    headerName: "Aksi",
+    width: 160,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: (params) => (
+      <Stack direction="row" className="flex-nowrap items-center gap-2">
+        <Trigger
+          content={(props) => (
+            <UpdateInfoDialog {...props} user={props.value as User} />
+          )}
+        >
+          {({ handleOpen }) => (
+            <Tooltip title="Update Info" placement="top">
+              <Button
+                variant="contained"
+                size="small"
+                color="info"
+                className="size-9 min-w-9 rounded-lg"
+                onClick={(e) => handleOpen(e, params.row)}
+              >
+                <UserPen className="size-5" />
+              </Button>
+            </Tooltip>
+          )}
+        </Trigger>
+
+        <Trigger
+          content={(props) => (
+            <UpdatePasswordDialog {...props} user={props.value as User} />
+          )}
+        >
+          {({ handleOpen }) => (
+            <Tooltip title="Change Password" placement="top">
+              <Button
+                variant="contained"
+                size="small"
+                color="warning"
+                className="size-9 min-w-9 rounded-lg"
+                onClick={(e) => handleOpen(e, params.row)}
+              >
+                <UserKey className="size-5" />
+              </Button>
+            </Tooltip>
+          )}
+        </Trigger>
+
+        <Trigger
+          content={(props) => (
+            <DeleteConfirmDialog {...props} user={props.value as User} />
+          )}
+        >
+          {({ handleOpen }) => (
+            <Tooltip title="Remove" placement="top">
+              <Button
+                variant="contained"
+                size="small"
+                color="error"
+                className="size-9 min-w-9 rounded-lg"
+                onClick={(e) => handleOpen(e, params.row)}
+              >
+                <UserRoundX className="size-5" />
+              </Button>
+            </Tooltip>
+          )}
+        </Trigger>
+      </Stack>
+    ),
+  },
+];
 
 export function UserTable() {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -61,19 +179,12 @@ export function UserTable() {
     return () => clearTimeout(debounceRef.current);
   }, [searchInput]);
 
-  const [updateInfoTarget, setUpdateInfoTarget] = useState<User | null>(null);
-  const [updatePasswordTarget, setUpdatePasswordTarget] = useState<User | null>(
-    null,
-  );
-  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
-  const [registerOpen, setRegisterOpen] = useState(false);
-
   const sort = sortModel.length > 0 ? sortModel[0].field : undefined;
   const order = sortModel.length > 0 ? sortModel[0].sort : undefined;
   const trpc = useTRPC();
 
   const {
-    data: usersRes,
+    data: users,
     isLoading,
     isFetching,
   } = useQuery(
@@ -91,100 +202,9 @@ export function UserTable() {
     ),
   );
 
-  const data = usersRes
-    ? { data: usersRes.data as User[], total: usersRes.total }
+  const data = users
+    ? { data: users.data as User[], total: users.total }
     : undefined;
-
-  const columns: GridColDef<User>[] = [
-    {
-      field: "name",
-      headerName: "Nama Pengguna",
-      width: 250,
-      flex: 1,
-      disableColumnMenu: true,
-      renderCell: (params) => (
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ alignItems: "center", height: "100%" }}
-        >
-          <Avatar {...stringAvatar(params.row.name)} />
-          <Box>
-            <Typography variant="body2" className="font-semibold">
-              {params.row.name}
-            </Typography>
-            <Typography
-              variant="body2"
-              className="text-xs font-medium text-gray-500"
-            >
-              @{params.row.username}
-            </Typography>
-          </Box>
-        </Stack>
-      ),
-    },
-    {
-      field: "email",
-      headerName: "Alamat Email",
-      width: 280,
-      disableColumnMenu: true,
-    },
-    {
-      field: "createdAt",
-      headerName: "Ditambahkan",
-      width: 160,
-      disableColumnMenu: true,
-      renderCell: (params) => (
-        <Typography variant="body2" className="text-sm">
-          {formatDate(params.value)}
-        </Typography>
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Aksi",
-      width: 160,
-      disableColumnMenu: true,
-      sortable: false,
-      renderCell: (params) => (
-        <Stack direction="row" className="flex-nowrap items-center gap-2">
-          <Tooltip title="Update Info" placement="top">
-            <Button
-              variant="contained"
-              size="small"
-              color="info"
-              className="size-9 min-w-9 rounded-lg"
-              onClick={() => setUpdateInfoTarget(params.row)}
-            >
-              <UserPen className="size-5" />
-            </Button>
-          </Tooltip>
-          <Tooltip title="Change Password" placement="top">
-            <Button
-              variant="contained"
-              size="small"
-              color="warning"
-              className="size-9 min-w-9 rounded-lg"
-              onClick={() => setUpdatePasswordTarget(params.row)}
-            >
-              <UserKey className="size-5" />
-            </Button>
-          </Tooltip>
-          <Tooltip title="Remove" placement="top">
-            <Button
-              variant="contained"
-              size="small"
-              color="error"
-              className="size-9 min-w-9 rounded-lg"
-              onClick={() => setDeleteTarget(params.row)}
-            >
-              <UserRoundX className="size-5" />
-            </Button>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
 
   return (
     <>
@@ -234,17 +254,21 @@ export function UserTable() {
             sx={{ minWidth: 300 }}
           />
 
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            className="h-9 min-w-40 rounded-lg px-3 text-nowrap"
-            startIcon={<UserPlus className="size-4" />}
-            onClick={() => setRegisterOpen(true)}
-            disabled={isLoading}
-          >
-            Tambah Pengguna
-          </Button>
+          <Trigger content={(props) => <RegisterUserDialog {...props} />}>
+            {({ handleOpen }) => (
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                className="h-9 min-w-40 rounded-lg px-3 text-nowrap"
+                startIcon={<UserPlus className="size-4" />}
+                onClick={handleOpen}
+                disabled={isLoading}
+              >
+                Tambah Pengguna
+              </Button>
+            )}
+          </Trigger>
         </Stack>
         <Card
           variant="outlined"
@@ -310,27 +334,6 @@ export function UserTable() {
           </CardContent>
         </Card>
       </Box>
-
-      {/* Dialogs */}
-      <UpdateInfoDialog
-        open={!!updateInfoTarget}
-        user={updateInfoTarget}
-        onClose={() => setUpdateInfoTarget(null)}
-      />
-      <UpdatePasswordDialog
-        open={!!updatePasswordTarget}
-        user={updatePasswordTarget}
-        onClose={() => setUpdatePasswordTarget(null)}
-      />
-      <DeleteConfirmDialog
-        open={!!deleteTarget}
-        user={deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-      />
-      <RegisterUserDialog
-        open={registerOpen}
-        onClose={() => setRegisterOpen(false)}
-      />
     </>
   );
 }
