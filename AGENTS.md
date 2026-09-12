@@ -18,6 +18,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Shared Schemas**: Put zod schemas usable on both client and server (tRPC inputs, shared DTOs) in `@shared/schemas` (e.g. `@shared/schemas/auth/login`, `@shared/schemas/management/users`). Import them via the `@shared/*` alias and reuse their inferred types instead of duplicating shapes in modules.
 - **Verification**: Always run the format task (`npm run format` or `bun run format`) followed by the lint task (`npm run lint` or `bun run lint`) at the end of making changes to verify code correctness and formatting.
 
+## Backend Organization
+
+Keep tRPC routers free of business logic. All backend logic lives in `app/(backend)/modules/<module>/`, and routes only wire procedures to services.
+
+- **Module structure**: One folder per module under `app/(backend)/modules/`. Files by responsibility — `services.ts` (business logic/DB access), plus optional `libs.ts`, `helpers.ts`, `constants.ts` as the module needs.
+- **Thin routers**: `app/(backend)/trpc/routers/**` only define procedures (auth middleware, input schemas) and delegate to module services. No queries, no DB calls, no `TRPCError` throws, no token/guard logic in routers.
+- **Services own business logic**: DB operations, validation/guards, error throwing, and token logic live in module `services.ts`. Services accept typed inputs (reuse inferred types from `@shared/schemas` when applicable).
+- **Client forms reuse shared schemas**: Derive form schemas from the shared request schemas via `.omit()`, `.extend()`, and `.refine()`. Add form-only fields (e.g. `confirmPassword` + password-match refine) in the component, never re-declare the fields the API already validates.
+
 ## Component Usage
 
 Prefer shared components and existing hooks over building new ones. Reference patterns seen in `app/(frontend)/components/common/` and `app/(frontend)/hooks/`.
