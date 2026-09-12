@@ -13,5 +13,50 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Managing Dependencies**:
   - When installing a dependency, run `bun add <package>` first, and then run `npm i` to ensure `package-lock.json` is kept updated.
   - When uninstalling a dependency, run `bun remove <package>` first, and then run `npm i` to ensure `package-lock.json` is kept updated.
-- **Commit Messages**: Always format commit messages exactly as `{action}: {message}` (e.g., `feat: add temporary mobile drawer layout`).
+- **Commit Messages**: Always format commit messages as `{action}({feature?}): {message}` followed by a description or list of changes (e.g. `feat(users): refactor user dialogs into standalone components`). Action examples: `feat`, `fix`, `refactor`, `chore`, `docs`.
+- **Imports**: Never use relative imports. Always use path aliases defined in `tsconfig.json`: `@/*`, `@backend/*`, `@frontend/*`, `@shared/*`, `@storage/*`, `@pages/*`.
 - **Verification**: Always run the format task (`npm run format` or `bun run format`) followed by the lint task (`npm run lint` or `bun run lint`) at the end of making changes to verify code correctness and formatting.
+
+## Component Usage
+
+Prefer shared components and existing hooks over building new ones. Reference patterns seen in `app/(frontend)/components/common/` and `app/(frontend)/hooks/`.
+
+### `Can` — RBAC conditional rendering
+
+Wrap content that requires permission. `resource` and `action` come from `@shared/types/rbac`; `fallback` is optional.
+
+```tsx
+import { Can } from "@frontend/components/common/can";
+
+<Can resource="user" action="create">
+  <Button>Tambah Pengguna</Button>
+</Can>;
+```
+
+### `Trigger` — popup/dialog state management
+
+Render-prop component that manages `open`, `anchorEl`, and an optional value. The rendered content must satisfy `TriggerContentProps` (`value?`, `open`, `anchorEl`, `onClose`). Usage is not limited to dialogs — any component accepting these props works.
+
+```tsx
+import { Trigger } from "@frontend/components/common/trigger";
+
+<Trigger
+  content={(props) => (
+    <UpdateInfoDialog {...props} user={props.value as User} />
+  )}
+>
+  {({ handleOpen }) => (
+    <Button onClick={(e) => handleOpen(e, params.row)}>
+      <UserPen className="size-5" />
+    </Button>
+  )}
+</Trigger>;
+```
+
+### Search params
+
+Use [nuqs](https://nuqs.dev) for search params on both the client and server side. Do not hand-roll query-string parsing or suspense hooks.
+
+### Hooks
+
+Prefer existing lookup hooks (`usePermissions`, `useMenu`, `useProfile`) and `react-use` over creating new hooks.
