@@ -130,11 +130,11 @@ export function PageDrawer({ showLogo = true, children }: PageDrawerProps) {
               {`Dashboard v${version}`}
             </Typography>
           </Stack>
-          <PageDrawerToggle />
+          <PageDrawer.Toggle />
         </Stack>
       )}
 
-      <Box ref={listRef} className="flex-1">
+      <Box ref={listRef} className="flex-1 py-2">
         {children}
       </Box>
 
@@ -193,12 +193,16 @@ export function PageDrawer({ showLogo = true, children }: PageDrawerProps) {
   );
 }
 
-function PageDrawerToggle() {
+interface PageDrawerToggleProps {
+  light?: boolean;
+}
+
+function PageDrawerToggle({ light = false }: PageDrawerToggleProps) {
   const { toggle } = usePageDrawer();
 
   return (
     <IconButton onClick={toggle}>
-      <PanelLeft className="size-5" />
+      <PanelLeft className={cx("size-5", light && "text-white")} />
     </IconButton>
   );
 }

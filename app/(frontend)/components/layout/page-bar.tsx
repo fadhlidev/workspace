@@ -28,12 +28,10 @@ export function PageBar({
       open={withDrawer ? open : false}
       className="flex flex-row items-center border-b border-gray-300 bg-white shadow-none"
     >
-      <Toolbar className="w-full">
+      <Toolbar className="relative w-full">
         <Stack
           direction="row"
-          sx={{ justifyContent: "start", alignItems: "center" }}
-          spacing={2}
-          className="w-full"
+          className="relative z-10 w-full items-center justify-center gap-4"
         >
           <Box sx={[open && { display: "none" }]}>
             <PageDrawer.Toggle />
