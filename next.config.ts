@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const securityHeaders = [
-  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
@@ -22,8 +22,8 @@ const securityHeaders = [
       "img-src 'self' data: blob: https: http:",
       "font-src 'self' data:",
       "connect-src 'self' https: http:",
-      "frame-src 'none'",
-      "object-src 'none'",
+      "frame-src 'self' blob:",
+      "object-src 'self' blob:",
       "base-uri 'self'",
       "form-action 'self'",
     ].join("; "),
