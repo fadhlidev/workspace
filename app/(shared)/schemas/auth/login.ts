@@ -5,7 +5,7 @@ export const loginRequestSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export type LoginRequest = z.infer<typeof logicRequestSchema>;
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
 
 export const loginResponseSchema = z.object({
   accessToken: z.string(),
