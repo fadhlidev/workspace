@@ -31,3 +31,20 @@ export function relativeTime(value: string | number | Date) {
   if (months < 12) return `${months} months ago`;
   return `${Math.round(months / 12)} years ago`;
 }
+
+export function formatDateTime(
+  value: string | number | Date | null | undefined,
+): string {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
+}
