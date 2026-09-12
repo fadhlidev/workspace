@@ -14,6 +14,7 @@ const schema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  DB_SSL: z.enum(["true", "false"]).default("false"),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -36,7 +37,7 @@ const poolConfig: PoolConfig = {
   query_timeout: env.DB_QUERY_TIMEOUT_MS,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10_000,
-  ssl: env.NODE_ENV === "production" ? { rejectUnauthorized: true } : false,
+  ssl: env.DB_SSL === "true" ? { rejectUnauthorized: true } : false,
 };
 
 export const pool = new Pool(poolConfig);
