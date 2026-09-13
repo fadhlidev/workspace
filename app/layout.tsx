@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import type { PropsWithChildren } from "react";
 import { cx } from "classix";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
@@ -10,12 +9,7 @@ import { theme } from "@frontend/styles/theme";
 import "@frontend/styles/globals.css";
 import "goey-toast/styles.css";
 
-export const metadata: Metadata = {
-  title: "Fadhlidev Workspace",
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
+export { metadata } from "@/app/metadata";
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (

@@ -104,3 +104,30 @@ const todoCollection = collectionOptions("todos", (client) =>
   }),
 );
 ```
+
+## Page Metadata
+
+Centralize static page metadata in `app/metadata.ts` (`@/app/metadata`). It exports the base `metadata` (brand title + favicon), reused by the root `layout.tsx` via `export { metadata } from "@/app/metadata"`, and an `extendMetadata(extend)` helper for pages.
+
+Pages must never hardcode full titles — `extendMetadata` merges the base and appends the brand: `title` becomes `` `${extend.title} | ${metadata.title}` `` (e.g. `"Login | Dashboard App"`).
+
+```ts
+// app/metadata.ts
+export const metadata: Metadata = {
+  title: "Dashboard App",
+  icons: { icon: "/favicon.ico" },
+};
+
+export function extendMetadata(
+  extend: Partial<Metadata> & { title: string },
+): Metadata {
+  return {
+    ...metadata,
+    ...extend,
+    title: `${extend.title} | ${metadata.title}`,
+  };
+}
+
+// app/(frontend)/(pages)/login/page.tsx
+export const metadata: Metadata = extendMetadata({ title: "Login" });
+```

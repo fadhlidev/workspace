@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { extendMetadata } from "@/app/metadata";
 import { PageLayout } from "@frontend/components/layout/page-layout";
 import { PageBar } from "@frontend/components/layout/page-bar";
 import { PageDrawer } from "@frontend/components/layout/page-drawer";
@@ -9,9 +10,7 @@ import { EditProfile } from "@pages/me/components/edit-profile";
 import { ChangePassword } from "@pages/me/components/change-password";
 import { Stack, Grid } from "@mui/material";
 
-export const metadata: Metadata = {
-  title: "My Profile | Fadhlidev Dashboard",
-};
+export const metadata: Metadata = extendMetadata({ title: "My Profile" });
 
 export default function Page() {
   return (

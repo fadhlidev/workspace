@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Box, Typography } from "@mui/material";
+import { extendMetadata } from "@/app/metadata";
 import { WaveBackground } from "@frontend/components/ui/wave-background";
 import { LoginForm } from "@pages/login/components/login-form";
 
-export const metadata: Metadata = {
-  title: "Login | Fadhlidev Dashboard",
-};
+export const metadata: Metadata = extendMetadata({ title: "Login" });
 
 export default function LoginPage() {
   return (
