@@ -70,3 +70,37 @@ Use [nuqs](https://nuqs.dev) for search params on both the client and server sid
 ### Hooks
 
 Prefer existing lookup hooks (`usePermissions`, `useMenu`, `useProfile`) and `react-use` over creating new hooks.
+
+### CRUD with TanStack DB
+
+For CRUD and list/detail fetching, use `@tanstack/react-db` instead of manually wiring `useQuery` + `useMutation` + cache invalidation. Define one `collectionOptions(...)` descriptor per entity (wrapped in `queryCollectionOptions`) and drive all views through `useDbClient().collection(...)` + `useLiveQuery`. Mutations (`insert`/`update`/`delete`) apply optimistically and sync via the descriptor's `onInsert`/`onUpdate`/`onDelete` handlers. See the [Quick Start](https://tanstack.com/db/latest/docs/quick-start).
+
+Backend stays on tRPC — the descriptor's `queryFn` (load) and CRUD handlers (persist) call the corresponding tRPC procedures, so no server code changes.
+
+- **Collection files**: Store each `collectionOptions(...)` descriptor in a feature-local `collections/` folder, one file per collection named after the entity (e.g. `@pages/management/users/collections/user.ts`, `@pages/management/access-permission/collections/role-permissions.ts`). A module can have multiple collections — keep them in separate files. Export the collection's row/response types from the same file.
+
+Requires `@tanstack/react-db`, `@tanstack/query-db-collection`, and `@tanstack/query-core`.
+
+```tsx
+const todoCollection = collectionOptions("todos", (client) =>
+  queryCollectionOptions({
+    id: "todos",
+    queryKey: ["todos"],
+    queryClient: client.requireDependency<QueryClient>("queryClient"),
+    queryFn: () => trpc.todos.list.query(),
+    getKey: (item) => item.id,
+    onInsert: async ({ transaction }) => {
+      const { modified } = transaction.mutations[0];
+      await trpc.todos.create.mutate(modified);
+    },
+    onUpdate: async ({ transaction }) => {
+      const { original, modified } = transaction.mutations[0];
+      await trpc.todos.update.mutate({ id: original.id, ...modified });
+    },
+    onDelete: async ({ transaction }) => {
+      const { original } = transaction.mutations[0];
+      await trpc.todos.delete.mutate({ id: original.id });
+    },
+  }),
+);
+```

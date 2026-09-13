@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@frontend/trpc/client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "@tanstack/react-db";
 import {
   Avatar,
   Box,
@@ -29,6 +28,7 @@ import { RegisterUserDialog } from "@pages/management/users/components/register-
 import { UpdateInfoDialog } from "@pages/management/users/components/update-info-dialog";
 import { UpdatePasswordDialog } from "@pages/management/users/components/update-password-dialog";
 import { DeleteConfirmDialog } from "@pages/management/users/components/delete-confirm-dialog";
+import { usersCollection } from "@pages/management/users/collections/user";
 import type { User } from "@pages/management/users/types/user";
 
 function stringAvatar(name: string) {
@@ -44,7 +44,7 @@ function stringAvatar(name: string) {
   };
 }
 
-const columns: GridColDef<User>[] = [
+const columns: GridColDef[] = [
   {
     field: "name",
     headerName: "Nama Pengguna",
@@ -179,32 +179,21 @@ export function UserTable() {
     return () => clearTimeout(debounceRef.current);
   }, [searchInput]);
 
-  const sort = sortModel.length > 0 ? sortModel[0].field : undefined;
-  const order = sortModel.length > 0 ? sortModel[0].sort : undefined;
-  const trpc = useTRPC();
+  const { data: users, isLoading } = useLiveQuery({
+    query: (q) => q.from({ user: usersCollection }),
+  });
 
-  const {
-    data: users,
-    isLoading,
-    isFetching,
-  } = useQuery(
-    trpc.management.users.list.queryOptions(
-      {
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        sort,
-        order: order as "asc" | "desc",
-        search,
-      },
-      {
-        placeholderData: keepPreviousData,
-      },
-    ),
-  );
-
-  const data = users
-    ? { data: users.data as User[], total: users.total }
-    : undefined;
+  const rows = useMemo(() => {
+    const list = users ?? [];
+    if (!search) return list;
+    const q = search.toLowerCase();
+    return list.filter(
+      (user) =>
+        user.name.toLowerCase().includes(q) ||
+        user.username.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q),
+    );
+  }, [users, search]);
 
   return (
     <>
@@ -225,12 +214,12 @@ export function UserTable() {
             >
               Semua Pengguna
             </Typography>
-            {data ? (
+            {users ? (
               <Typography
                 component="div"
                 className="font-lato text-[1rem] font-semibold text-gray-500"
               >
-                {data?.total ?? 0}
+                {users?.length ?? 0}
               </Typography>
             ) : null}
           </Stack>
@@ -276,18 +265,15 @@ export function UserTable() {
         >
           <CardContent className="last:pb-0">
             <Box sx={{ mt: -2, mx: -2, height: "calc(100dvh - 170px)" }}>
-              {!data ? (
+              {!users ? (
                 <Skeleton className="h-full rounded-none" variant="rounded" />
               ) : (
                 <DataGrid
-                  rows={data?.data ?? []}
+                  rows={rows}
                   columns={columns}
-                  rowCount={data?.total ?? 0}
-                  loading={isLoading || isFetching}
-                  paginationMode="server"
+                  loading={isLoading}
                   paginationModel={paginationModel}
                   onPaginationModelChange={setPaginationModel}
-                  sortingMode="server"
                   sortModel={sortModel}
                   onSortModelChange={setSortModel}
                   getRowId={(row) => row.id}

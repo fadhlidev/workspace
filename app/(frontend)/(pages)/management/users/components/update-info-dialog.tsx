@@ -1,10 +1,10 @@
 "use client";
 
+import { useToggle } from "react-use";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@frontend/trpc/client";
+import { useDbClient } from "@tanstack/react-db";
 import {
   Alert,
   Box,
@@ -35,6 +35,7 @@ import {
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
 import { updateUserRequestSchema } from "@shared/schemas/management/users";
+import { usersCollection } from "@pages/management/users/collections/user";
 import type { User } from "@pages/management/users/types/user";
 
 const updateInfoSchema = updateUserRequestSchema.omit({ id: true });
@@ -52,7 +53,8 @@ export function UpdateInfoDialog({
   user,
   onClose,
 }: UpdateInfoDialogProps) {
-  const trpc = useTRPC();
+  const dbClient = useDbClient();
+  const [isSubmitting, toggleSubmitting] = useToggle(false);
 
   const {
     register,
@@ -72,17 +74,23 @@ export function UpdateInfoDialog({
       : undefined,
   });
 
-  const { isPending, mutate } = useMutation(
-    trpc.management.users.update.mutationOptions({
-      onSuccess: () => {
-        goeyToast.success("Informasi pengguna berhasil diperbarui");
-        handleClose();
-      },
-      onError: (err) => {
-        setError("root", { message: getApiErrorMessage(err) });
-      },
-    }),
-  );
+  async function handleUpdate(data: UpdateInfoInput) {
+    toggleSubmitting();
+    try {
+      await dbClient.collection(usersCollection).update(user!.id, (draft) => {
+        draft.name = data.name ?? draft.name;
+        draft.username = data.username ?? draft.username;
+        draft.email = data.email ?? draft.email;
+        draft.role = data.role ?? draft.role;
+      }).isPersisted.promise;
+      goeyToast.success("Informasi pengguna berhasil diperbarui");
+      handleClose();
+    } catch (err) {
+      setError("root", { message: getApiErrorMessage(err) });
+    } finally {
+      toggleSubmitting();
+    }
+  }
 
   function handleClose() {
     reset();
@@ -92,7 +100,7 @@ export function UpdateInfoDialog({
   return (
     <Dialog
       open={open}
-      onClose={isPending ? undefined : handleClose}
+      onClose={isSubmitting ? undefined : handleClose}
       maxWidth="sm"
       fullWidth
       slotProps={{
@@ -117,19 +125,7 @@ export function UpdateInfoDialog({
 
       <Divider />
 
-      <Box
-        component="form"
-        onSubmit={handleSubmit((data) =>
-          mutate({
-            id: user!.id,
-            name: data.name,
-            username: data.username,
-            email: data.email,
-            role: data.role,
-          }),
-        )}
-        noValidate
-      >
+      <Box component="form" onSubmit={handleSubmit(handleUpdate)} noValidate>
         <DialogContent className="space-y-4 pt-4">
           {errors.root && (
             <Alert severity="error" className="rounded-lg">
@@ -268,7 +264,7 @@ export function UpdateInfoDialog({
             size="small"
             className="h-8 rounded-lg px-4 text-gray-600"
             onClick={handleClose}
-            disabled={isPending}
+            disabled={isSubmitting}
           >
             Batalkan
           </Button>
@@ -279,7 +275,7 @@ export function UpdateInfoDialog({
             size="small"
             className="h-8 rounded-lg px-4"
             startIcon={<Pencil className="size-4" />}
-            loading={isPending}
+            loading={isSubmitting}
           >
             Simpan Perubahan
           </Button>

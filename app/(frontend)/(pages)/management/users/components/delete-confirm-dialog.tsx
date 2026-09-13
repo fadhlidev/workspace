@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@frontend/trpc/client";
+import { useToggle } from "react-use";
+import { useDbClient } from "@tanstack/react-db";
 import {
   Alert,
   Box,
@@ -17,6 +17,7 @@ import {
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
+import { usersCollection } from "@pages/management/users/collections/user";
 import type { User } from "@pages/management/users/types/user";
 
 export interface DeleteConfirmDialogProps {
@@ -30,25 +31,28 @@ export function DeleteConfirmDialog({
   user,
   onClose,
 }: DeleteConfirmDialogProps) {
-  const trpc = useTRPC();
+  const dbClient = useDbClient();
+  const [isSubmitting, toggleSubmitting] = useToggle(false);
 
-  const { isPending, mutate } = useMutation(
-    trpc.management.users.delete.mutationOptions({
-      onSuccess: () => {
-        goeyToast.success("Pengguna berhasil dihapus");
-        onClose();
-      },
-      onError: (err) => {
-        goeyToast.error(getApiErrorMessage(err));
-        onClose();
-      },
-    }),
-  );
+  async function handleDelete() {
+    toggleSubmitting();
+    try {
+      await dbClient.collection(usersCollection).delete(user!.id).isPersisted
+        .promise;
+      goeyToast.success("Pengguna berhasil dihapus");
+      onClose();
+    } catch (err) {
+      goeyToast.error(getApiErrorMessage(err));
+      onClose();
+    } finally {
+      toggleSubmitting();
+    }
+  }
 
   return (
     <Dialog
       open={open}
-      onClose={isPending ? undefined : onClose}
+      onClose={isSubmitting ? undefined : onClose}
       maxWidth="xs"
       fullWidth
       slotProps={{
@@ -99,7 +103,7 @@ export function DeleteConfirmDialog({
           size="small"
           className="rounded-lg px-4 text-gray-600"
           onClick={onClose}
-          disabled={isPending}
+          disabled={isSubmitting}
         >
           Batalkan
         </Button>
@@ -110,8 +114,8 @@ export function DeleteConfirmDialog({
           size="small"
           className="rounded-lg px-4"
           startIcon={<Trash2 className="size-4" />}
-          loading={isPending}
-          onClick={() => mutate({ id: user!.id })}
+          loading={isSubmitting}
+          onClick={handleDelete}
         >
           Hapus Pengguna
         </Button>

@@ -4,8 +4,7 @@ import { useToggle } from "react-use";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@frontend/trpc/client";
+import { useDbClient } from "@tanstack/react-db";
 import {
   Alert,
   Box,
@@ -40,6 +39,7 @@ import {
 import { goeyToast } from "goey-toast";
 import { getApiErrorMessage } from "@backend/helpers/api";
 import { createUserRequestSchema } from "@shared/schemas/management/users";
+import { usersCollection } from "@pages/management/users/collections/user";
 
 const registerUserSchema = createUserRequestSchema
   .extend({
@@ -60,9 +60,10 @@ export interface RegisterUserDialogProps {
 }
 
 export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
-  const trpc = useTRPC();
+  const dbClient = useDbClient();
   const [showPassword, toggleShowPassword] = useToggle(false);
   const [showConfirm, toggleShowConfirm] = useToggle(false);
+  const [isSubmitting, toggleSubmitting] = useToggle(false);
 
   const {
     register,
@@ -77,17 +78,28 @@ export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
     },
   });
 
-  const { isPending, mutate } = useMutation(
-    trpc.management.users.create.mutationOptions({
-      onSuccess: () => {
-        goeyToast.success("Pengguna baru berhasil ditambahkan");
-        handleClose();
-      },
-      onError: (err) => {
-        setError("root", { message: getApiErrorMessage(err) });
-      },
-    }),
-  );
+  async function handleRegister(data: RegisterUserInput) {
+    toggleSubmitting();
+    try {
+      await dbClient.collection(usersCollection).insert(
+        {
+          id: crypto.randomUUID(),
+          name: data.name,
+          username: data.username,
+          email: data.email,
+          role: data.role ?? "user",
+          createdAt: new Date().toISOString(),
+        },
+        { metadata: { password: data.password } },
+      ).isPersisted.promise;
+      goeyToast.success("Pengguna baru berhasil ditambahkan");
+      handleClose();
+    } catch (err) {
+      setError("root", { message: getApiErrorMessage(err) });
+    } finally {
+      toggleSubmitting();
+    }
+  }
 
   function handleClose() {
     reset();
@@ -97,7 +109,7 @@ export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
   return (
     <Dialog
       open={open}
-      onClose={isPending ? undefined : handleClose}
+      onClose={isSubmitting ? undefined : handleClose}
       maxWidth="sm"
       fullWidth
       slotProps={{
@@ -122,19 +134,7 @@ export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
 
       <Divider />
 
-      <Box
-        component="form"
-        onSubmit={handleSubmit((data) =>
-          mutate({
-            name: data.name,
-            username: data.username,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-          }),
-        )}
-        noValidate
-      >
+      <Box component="form" onSubmit={handleSubmit(handleRegister)} noValidate>
         <DialogContent className="space-y-4 pt-4">
           {errors.root && (
             <Alert severity="error" className="rounded-lg">
@@ -370,7 +370,7 @@ export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
             size="small"
             className="h-8 rounded-lg px-4 text-gray-600"
             onClick={handleClose}
-            disabled={isPending}
+            disabled={isSubmitting}
           >
             Batalkan
           </Button>
@@ -381,7 +381,7 @@ export function RegisterUserDialog({ open, onClose }: RegisterUserDialogProps) {
             size="small"
             className="h-8 rounded-lg px-4"
             startIcon={<UserPlus className="size-4" />}
-            loading={isPending}
+            loading={isSubmitting}
           >
             Tambah Pengguna
           </Button>

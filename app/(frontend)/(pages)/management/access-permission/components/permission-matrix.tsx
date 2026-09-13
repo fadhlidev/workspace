@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "@frontend/trpc/client";
+import { useCallback, useMemo } from "react";
+import { useDbClient, useLiveQuery } from "@tanstack/react-db";
 import { goeyToast } from "goey-toast";
+import { getApiErrorMessage } from "@backend/helpers/api";
 import {
   Box,
   Card,
@@ -14,154 +14,119 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ShieldCheck } from "lucide-react";
-
-type Resource = {
-  id: string;
-  name: string;
-  label: string;
-  description: string | null;
-};
-
-type Action = {
-  id: string;
-  name: string;
-  label: string;
-  description: string | null;
-};
-
-type RolePermission = {
-  id: string;
-  role: string;
-  resourceId: string;
-  actionId: string;
-  resource: string;
-  action: string;
-};
+import {
+  permissionResourcesCollection,
+  type PermissionResource,
+} from "@pages/management/access-permission/collections/permission-resources";
+import { permissionActionsCollection } from "@pages/management/access-permission/collections/permission-actions";
+import { rolePermissionsCollection } from "@pages/management/access-permission/collections/role-permissions";
 
 const ROLES = [
   { key: "admin", label: "Admin", color: "error" as const },
   { key: "user", label: "User", color: "primary" as const },
 ];
 
+function entryKey(role: string, resourceId: string, actionId: string) {
+  return `${role}:${resourceId}:${actionId}`;
+}
+
 export function PermissionMatrix() {
-  const queryClient = useQueryClient();
-  const trpc = useTRPC();
+  const dbClient = useDbClient();
 
-  const { data: resourcesRes, isLoading: resourcesLoading } = useQuery(
-    trpc.management.accessPermissions.getResources.queryOptions(),
-  );
+  const { data: resources = [], isLoading: resourcesLoading } = useLiveQuery({
+    query: (q) => q.from({ resource: permissionResourcesCollection }),
+  });
 
-  const { data: actionsRes, isLoading: actionsLoading } = useQuery(
-    trpc.management.accessPermissions.getActions.queryOptions(),
-  );
+  const { data: actions = [], isLoading: actionsLoading } = useLiveQuery({
+    query: (q) => q.from({ action: permissionActionsCollection }),
+  });
 
-  const { data: rolePermissionsRes, isLoading: rpLoading } = useQuery(
-    trpc.management.accessPermissions.getRolePermissions.queryOptions(),
-  );
-
-  const resources = useMemo(
-    () => (resourcesRes?.data as Resource[]) ?? [],
-    [resourcesRes],
-  );
-  const actions = useMemo(
-    () => (actionsRes?.data as Action[]) ?? [],
-    [actionsRes],
-  );
-  const rolePermissionsList = useMemo(
-    () => (rolePermissionsRes?.data as RolePermission[]) ?? [],
-    [rolePermissionsRes],
+  const { data: rolePermissionsList = [], isLoading: rpLoading } = useLiveQuery(
+    {
+      query: (q) => q.from({ rolePermission: rolePermissionsCollection }),
+    },
   );
 
-  const [pendingToggles, setPendingToggles] = useState<Map<string, boolean>>(
-    new Map(),
+  const actionById = useMemo(
+    () => new Map(actions.map((action) => [action.id, action])),
+    [actions],
   );
 
   const serverSelected = useMemo(() => {
     const s = new Set<string>();
     for (const rp of rolePermissionsList) {
-      s.add(`${rp.role}:${rp.resourceId}:${rp.actionId}`);
+      s.add(entryKey(rp.role, rp.resourceId, rp.actionId));
     }
     return s;
   }, [rolePermissionsList]);
 
   const isSelected = useCallback(
-    (role: string, resourceId: string, actionId: string) => {
-      const key = `${role}:${resourceId}:${actionId}`;
-      const pending = pendingToggles.get(key);
-      return pending ?? serverSelected.has(key);
-    },
-    [pendingToggles, serverSelected],
-  );
-
-  const { mutate: toggleMutate } = useMutation(
-    trpc.management.accessPermissions.toggleRolePermission.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          trpc.management.accessPermissions.getRolePermissions.queryFilter(),
-        );
-      },
-    }),
+    (role: string, resourceId: string, actionId: string) =>
+      serverSelected.has(entryKey(role, resourceId, actionId)),
+    [serverSelected],
   );
 
   const handleToggle = useCallback(
-    (
+    async (
       targetRole: string,
       resourceId: string,
       actionId: string,
       enabled: boolean,
+      resourceName: string,
+      actionName: string,
     ) => {
-      const key = `${targetRole}:${resourceId}:${actionId}`;
-      setPendingToggles((prev) => {
-        const next = new Map(prev);
-        next.set(key, enabled);
-        return next;
-      });
-
-      toggleMutate(
-        { targetRole, resourceId, actionId, enabled },
-        {
-          onSuccess: (data) => {
-            setPendingToggles((prev) => {
-              const next = new Map(prev);
-              next.delete(key);
-              return next;
-            });
-            goeyToast.success(data.message);
-          },
-          onError: (err) => {
-            setPendingToggles((prev) => {
-              const next = new Map(prev);
-              next.delete(key);
-              return next;
-            });
-            goeyToast.error(err.message || "Failed to update permission");
-          },
-        },
-      );
+      const rolePermissions = dbClient.collection(rolePermissionsCollection);
+      try {
+        if (enabled) {
+          await rolePermissions.insert({
+            id: crypto.randomUUID(),
+            role: targetRole,
+            resourceId,
+            actionId,
+            resource: resourceName,
+            action: actionName,
+          }).isPersisted.promise;
+        } else {
+          const key = entryKey(targetRole, resourceId, actionId);
+          const existing = rolePermissionsList.find(
+            (rp) => entryKey(rp.role, rp.resourceId, rp.actionId) === key,
+          );
+          if (!existing) return;
+          await rolePermissions.delete(existing.id).isPersisted.promise;
+        }
+        goeyToast.success(
+          enabled ? "Permission granted" : "Permission revoked",
+        );
+      } catch (err) {
+        goeyToast.error(getApiErrorMessage(err));
+      }
     },
-    [toggleMutate],
+    [dbClient, rolePermissionsList],
   );
 
   const makeRoleColumn = useCallback(
-    (roleKey: string, resourceId: string): GridColDef => ({
+    (roleKey: string, resource: PermissionResource): GridColDef => ({
       field: `role_${roleKey}`,
       headerName: ROLES.find((r) => r.key === roleKey)!.label,
       minWidth: 80,
-      align: "center" as const,
-      headerAlign: "center" as const,
+      align: "center",
+      headerAlign: "center",
       sortable: false,
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as { actionId: string };
+        const action = actionById.get(row.actionId);
         return (
           <Box className="flex h-full w-full items-center justify-center">
             <Checkbox
-              checked={isSelected(roleKey, resourceId, row.actionId)}
+              checked={isSelected(roleKey, resource.id, row.actionId)}
               onChange={() =>
                 handleToggle(
                   roleKey,
-                  resourceId,
+                  resource.id,
                   row.actionId,
-                  !isSelected(roleKey, resourceId, row.actionId),
+                  !isSelected(roleKey, resource.id, row.actionId),
+                  resource.name,
+                  action?.name ?? "",
                 )
               }
               size="small"
@@ -170,7 +135,7 @@ export function PermissionMatrix() {
         );
       },
     }),
-    [isSelected, handleToggle],
+    [isSelected, handleToggle, actionById],
   );
 
   const resourceGrids = useMemo(
@@ -195,7 +160,7 @@ export function PermissionMatrix() {
               </Typography>
             ),
           },
-          ...ROLES.map((role) => makeRoleColumn(role.key, resource.id)),
+          ...ROLES.map((role) => makeRoleColumn(role.key, resource)),
         ];
 
         return { resource, rows, columns };

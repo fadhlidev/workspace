@@ -15,6 +15,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { GooeyToaster } from "goey-toast";
 import { useTheme } from "@mui/material/styles";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { DbClient, DbProvider } from "@tanstack/react-db";
 import { TRPCProvider } from "@frontend/trpc/client";
 import type { AppRouter } from "@backend/trpc/root";
 
@@ -65,6 +66,8 @@ export function ClientProvider({ children }: PropsWithChildren) {
     }),
   );
 
+  const [dbClient] = useState(() => new DbClient({ queryClient, trpcClient }));
+
   return (
     <ProgressProvider
       color={theme.palette.primary.main}
@@ -76,11 +79,13 @@ export function ClientProvider({ children }: PropsWithChildren) {
       <SessionProvider>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <QueryClientProvider client={queryClient}>
-            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-              <NuqsAdapter>{children}</NuqsAdapter>
-              <GooeyToaster position="top-right" closeButton showProgress />
-              <ReactQueryDevtools initialIsOpen={false} />
-            </TRPCProvider>
+            <DbProvider client={dbClient}>
+              <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                <NuqsAdapter>{children}</NuqsAdapter>
+                <GooeyToaster position="top-right" closeButton showProgress />
+                <ReactQueryDevtools initialIsOpen={false} />
+              </TRPCProvider>
+            </DbProvider>
           </QueryClientProvider>
         </LocalizationProvider>
       </SessionProvider>
